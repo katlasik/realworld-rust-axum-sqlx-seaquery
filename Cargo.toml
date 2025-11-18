@@ -1,0 +1,15 @@
+[package]
+name = "realworld"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.7"
+tokio = { version = "1", features = ["full"] }
+tryphon = "0.2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tower-http = { version = "0.6", features = ["trace"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+validator = { version = "0.20.0", features = ["derive"] }
