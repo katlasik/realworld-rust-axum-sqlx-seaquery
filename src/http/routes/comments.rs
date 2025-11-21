@@ -1,7 +1,11 @@
+use crate::app_error::AppError;
+use crate::domain::commands::add_comment_command::AddCommentCommand;
 use crate::http::AppState;
-use crate::http::dto::comment::{Comment, CommentResponse, CommentsResponse, CreateCommentRequest};
-use crate::http::dto::profile::Profile;
-use axum::extract::Path;
+use crate::http::dto::comment::{CommentItem, CommentResponse, CommentsResponse, CreateCommentRequest};
+use crate::http::extractors::auth_token::AuthToken;
+use crate::model::values::comment_id::CommentId;
+use crate::model::values::slug::Slug;
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post};
 use axum::{Json, Router};
@@ -15,40 +19,68 @@ pub(crate) fn comment_routes() -> Router<AppState> {
 }
 
 async fn add_comment(
-    Path(slug): Path<String>,
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path(slug): Path<Slug>,
     Json(payload): Json<CreateCommentRequest>,
-) -> Result<Json<CommentResponse>, StatusCode> {
+) -> Result<Json<CommentResponse>, AppError> {
     info!("Add comment to article: {}", slug);
 
-    // TODO: Save comment to database
-    let comment = Comment {
-        id: 1,
-        created_at: "2024-01-01T00:00:00.000Z".to_string(),
-        updated_at: "2024-01-01T00:00:00.000Z".to_string(),
-        body: payload.comment.body,
-        author: Profile {
-            username: "currentuser".try_into().unwrap(),
-            bio: None,
-            image: None,
-            following: false,
-        },
-    };
+    let article = state
+        .article_service
+        .get_article(&slug, Some(auth.user_id))
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    let command = AddCommentCommand::from_request(payload, article.id, auth.user_id);
+
+    let comment_view = state
+        .comment_service
+        .add_comment(command, auth.user_id)
+        .await?;
+
+    let comment = CommentItem::from_comment_view(comment_view);
 
     Ok(Json(CommentResponse { comment }))
 }
 
-async fn get_comments(Path(slug): Path<String>) -> Result<Json<CommentsResponse>, StatusCode> {
+async fn get_comments(
+    State(state): State<AppState>,
+    auth: Option<AuthToken>,
+    Path(slug): Path<Slug>,
+) -> Result<Json<CommentsResponse>, AppError> {
     info!("Get comments for article: {}", slug);
 
-    // TODO: Fetch comments from database
-    let comments = vec![];
+    let article = state
+        .article_service
+        .get_article(&slug, None)
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    let comment_views = state
+        .comment_service
+        .get_comments(article.id, auth.map(|a| a.user_id))
+        .await?;
+
+    let comments = comment_views
+        .into_iter()
+        .map(CommentItem::from_comment_view)
+        .collect();
 
     Ok(Json(CommentsResponse { comments }))
 }
 
-async fn delete_comment(Path((slug, id)): Path<(String, i64)>) -> Result<StatusCode, StatusCode> {
-    info!("Delete comment {} from article: {}", id, slug);
+async fn delete_comment(
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path((slug, comment_id)): Path<(Slug, CommentId)>,
+) -> Result<StatusCode, AppError> {
+    info!("Delete comment {} from article: {}", comment_id, slug);
 
-    // TODO: Delete comment from database
+    state
+        .comment_service
+        .delete_comment(comment_id, auth.user_id)
+        .await?;
+
     Ok(StatusCode::NO_CONTENT)
 }

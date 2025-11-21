@@ -10,9 +10,9 @@ use validator::ValidateEmail;
 pub struct Email(String);
 
 impl Email {
-  pub fn value(&self) -> &str {
-    &self.0
-  }
+    pub fn value(&self) -> &str {
+        &self.0
+    }
 }
 
 impl TryFrom<String> for Email {

@@ -9,9 +9,9 @@ use std::ops::Deref;
 pub struct Username(String);
 
 impl Username {
-  pub fn value(&self) -> &str {
-      &self.0
-  }
+    pub fn value(&self) -> &str {
+        &self.0
+    }
 }
 
 impl TryFrom<String> for Username {

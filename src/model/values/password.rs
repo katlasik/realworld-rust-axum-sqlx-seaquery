@@ -24,11 +24,17 @@ impl TryFrom<String> for Password {
         }
 
         if value.len() < MIN_PASSWORD_LENGTH {
-            return Err(format!("Password must be at least {} characters long", MIN_PASSWORD_LENGTH));
+            return Err(format!(
+                "Password must be at least {} characters long",
+                MIN_PASSWORD_LENGTH
+            ));
         }
 
         if value.len() > MAX_PASSWORD_LENGTH {
-            return Err(format!("Password cannot be longer than {} characters", MAX_PASSWORD_LENGTH));
+            return Err(format!(
+                "Password cannot be longer than {} characters",
+                MAX_PASSWORD_LENGTH
+            ));
         }
 
         Ok(Password(value))

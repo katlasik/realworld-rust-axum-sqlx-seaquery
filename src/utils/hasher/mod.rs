@@ -1,12 +1,12 @@
 mod hashing_error;
 
+use crate::model::values::password::Password;
+use crate::model::values::password_hash::PasswordHash;
+use crate::utils::hasher::hashing_error::HashingError;
 use argon2::{
     Argon2,
     password_hash::{PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use crate::model::values::password::Password;
-use crate::model::values::password_hash::PasswordHash;
-use crate::utils::hasher::hashing_error::HashingError;
 
 #[derive(Clone)]
 pub struct Hasher {
@@ -26,7 +26,7 @@ impl Hasher {
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();
 
-        let peppered_password = self.pepper_password(&password);
+        let peppered_password = self.pepper_password(password);
 
         let hash = argon2
             .hash_password(peppered_password.as_bytes(), &salt)
@@ -34,10 +34,13 @@ impl Hasher {
             .map_err(|e| HashingError::HashingError(e.to_string()))?;
 
         Ok(hash.into())
-
     }
 
-    pub fn verify_password(&self, password: &Password, hash: &PasswordHash) -> Result<bool, HashingError> {
+    pub fn verify_password(
+        &self,
+        password: &Password,
+        hash: &PasswordHash,
+    ) -> Result<bool, HashingError> {
         let parsed_hash = argon2::PasswordHash::new(hash)
             .map_err(|e| HashingError::VerificationError(e.to_string()))?;
 

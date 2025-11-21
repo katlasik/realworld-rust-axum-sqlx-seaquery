@@ -1,9 +1,9 @@
-use anyhow::Context;
-use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
-use serde::{Deserialize, Serialize};
 use crate::app_error::AppError;
 use crate::model::values::user_id::UserId;
+use anyhow::Context;
+use chrono::{Duration, Utc};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -36,9 +36,10 @@ impl JwtHandler {
             &Header::default(),
             &claims,
             &EncodingKey::from_secret(self.secret.as_bytes()),
-        ).context("Failed to generate JWT Token")?;
+        )
+        .context("Failed to generate JWT Token")?;
 
-      Ok(token)
+        Ok(token)
     }
 
     pub fn verify_token(&self, token: &str) -> Result<Claims, AppError> {
@@ -46,7 +47,8 @@ impl JwtHandler {
             token,
             &DecodingKey::from_secret(self.secret.as_bytes()),
             &Validation::default(),
-        ).map_err(|_| AppError::Unauthorized)?;
+        )
+        .map_err(|_| AppError::Unauthorized)?;
 
         Ok(token_data.claims)
     }

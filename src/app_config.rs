@@ -18,15 +18,20 @@ impl HttpConfig {
 
 #[derive(Debug, Config, Clone)]
 pub struct DatabaseConfig {
-    #[env("DATABASE_USER")] #[default("realworld")]
+    #[env("DATABASE_USER")]
+    #[default("realworld")]
     pub(crate) user: String,
-    #[env("DATABASE_NAME")] #[default("realworld")]
+    #[env("DATABASE_NAME")]
+    #[default("realworld")]
     pub(crate) database: String,
-    #[env("DATABASE_PASSWORD")] #[default(Secret("password".into()))]
+    #[env("DATABASE_PASSWORD")]
+    #[default(Secret("password".into()))]
     pub(crate) password: Secret<String>,
-    #[env("DATABASE_URL")] #[default("localhost")]
+    #[env("DATABASE_URL")]
+    #[default("localhost")]
     pub(crate) url: String,
-    #[env("DATABASE_PORT")] #[default(5432)]
+    #[env("DATABASE_PORT")]
+    #[default(5432)]
     pub(crate) port: u16,
     #[env("DATABASE_MAX_CONNECTIONS")]
     #[default(50)]

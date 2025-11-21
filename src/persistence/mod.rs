@@ -1,3 +1,6 @@
-pub mod user_repository;
+pub mod article_repository;
+pub mod comment_repository;
 pub mod params;
-pub mod indexed_user_field;
+pub mod profile_repository;
+pub mod tag_repository;
+pub mod user_repository;

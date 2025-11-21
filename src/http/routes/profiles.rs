@@ -1,8 +1,10 @@
+use crate::app_error::AppError;
 use crate::http::AppState;
 use crate::http::dto::profile::{Profile, ProfileResponse};
+use crate::http::extractors::auth_token::AuthToken;
+use crate::model::indexed_user_field::IndexedUserField;
 use crate::model::values::username::Username;
-use axum::extract::Path;
-use axum::http::StatusCode;
+use axum::extract::{Path, State};
 use axum::routing::{delete, get, post};
 use axum::{Json, Router};
 use tracing::info;
@@ -14,46 +16,75 @@ pub(crate) fn profile_routes() -> Router<AppState> {
         .route("/profiles/{username}/follow", delete(unfollow_user))
 }
 
-async fn get_profile(Path(username): Path<Username>) -> Result<Json<ProfileResponse>, StatusCode> {
+async fn get_profile(
+    State(state): State<AppState>,
+    auth: Option<AuthToken>,
+    Path(username): Path<Username>,
+) -> Result<Json<ProfileResponse>, AppError> {
     info!("Get profile for username: {}", username);
 
-    // TODO: Fetch profile from database
-    let profile = Profile {
-        username,
-        bio: Some("User bio".to_string()),
-        image: None,
-        following: false,
+    let user = state
+        .user_service
+        .get_user_by(IndexedUserField::Username, username.clone())
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    let following = if let Some(token) = auth {
+        state
+            .profile_service
+            .is_following(token.user_id, user.id)
+            .await?
+    } else {
+        false
     };
+
+    let profile = Profile::from_user(user, following);
 
     Ok(Json(ProfileResponse { profile }))
 }
 
-async fn follow_user(Path(username): Path<Username>) -> Result<Json<ProfileResponse>, StatusCode> {
+async fn follow_user(
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path(username): Path<Username>,
+) -> Result<Json<ProfileResponse>, AppError> {
     info!("Follow user: {}", username);
 
-    // TODO: Create follow relationship in database
-    let profile = Profile {
-        username,
-        bio: Some("User bio".to_string()),
-        image: None,
-        following: true,
-    };
+    let user = state
+        .user_service
+        .get_user_by(IndexedUserField::Username, username)
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    state
+        .profile_service
+        .follow_user(auth.user_id, user.id)
+        .await?;
+
+    let profile = Profile::from_user(user, true);
 
     Ok(Json(ProfileResponse { profile }))
 }
 
 async fn unfollow_user(
+    State(state): State<AppState>,
+    auth: AuthToken,
     Path(username): Path<Username>,
-) -> Result<Json<ProfileResponse>, StatusCode> {
+) -> Result<Json<ProfileResponse>, AppError> {
     info!("Unfollow user: {}", username);
 
-    // TODO: Remove follow relationship from database
-    let profile = Profile {
-        username,
-        bio: Some("User bio".to_string()),
-        image: None,
-        following: false,
-    };
+    let user = state
+        .user_service
+        .get_user_by(IndexedUserField::Username, username)
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    state
+        .profile_service
+        .unfollow_user(auth.user_id, user.id)
+        .await?;
+
+    let profile = Profile::from_user(user, false);
 
     Ok(Json(ProfileResponse { profile }))
 }

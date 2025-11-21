@@ -1,7 +1,16 @@
+pub mod article_body;
+pub mod article_description;
+pub mod article_id;
+pub mod article_title;
 pub mod bio;
+pub mod comment_body;
+pub mod comment_id;
 pub mod email;
 pub mod image;
 pub mod password;
 pub mod password_hash;
+pub mod slug;
+pub mod tag_id;
+pub mod tag_name;
 pub mod user_id;
 pub mod username;

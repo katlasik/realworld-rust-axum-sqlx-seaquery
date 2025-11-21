@@ -1,9 +1,9 @@
+use crate::model::persistence::user::User;
 use crate::model::values::bio::Bio;
 use crate::model::values::email::Email;
 use crate::model::values::image::Image;
 use crate::model::values::username::Username;
 use serde::{Deserialize, Serialize};
-use crate::model::persistence::user::User;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserResponse {

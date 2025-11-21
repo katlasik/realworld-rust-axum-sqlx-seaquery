@@ -93,7 +93,9 @@ async fn test_login_with_valid_credentials() {
                 .method("POST")
                 .uri("/api/users")
                 .header("content-type", "application/json")
-                .body(Body::from(serde_json::to_string(&register_payload).unwrap()))
+                .body(Body::from(
+                    serde_json::to_string(&register_payload).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -153,7 +155,9 @@ async fn test_login_with_invalid_password_fails() {
                 .method("POST")
                 .uri("/api/users")
                 .header("content-type", "application/json")
-                .body(Body::from(serde_json::to_string(&register_payload).unwrap()))
+                .body(Body::from(
+                    serde_json::to_string(&register_payload).unwrap(),
+                ))
                 .unwrap(),
         )
         .await

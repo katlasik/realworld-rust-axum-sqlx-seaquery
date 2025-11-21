@@ -1,10 +1,16 @@
+use crate::app_error::AppError;
+use crate::domain::commands::create_article_command::CreateArticleCommand;
+use crate::domain::commands::get_feed_query::GetFeedQuery;
+use crate::domain::commands::list_articles_query::ListArticlesQuery;
+use crate::domain::commands::update_article_command::UpdateArticleCommand;
 use crate::http::AppState;
 use crate::http::dto::article::{
-    Article, ArticleListQuery, ArticleResponse, ArticlesResponse, CreateArticleRequest,
-    UpdateArticleRequest,
+  ArticleItem, ArticleListItem, ArticleListQuery as ArticleListQueryDto, ArticleResponse,
+  ArticlesResponse, CreateArticleRequest, UpdateArticleRequest,
 };
-use crate::http::dto::profile::Profile;
-use axum::extract::{Path, Query};
+use crate::http::extractors::auth_token::AuthToken;
+use crate::model::values::slug::Slug;
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post, put};
 use axum::{Json, Router};
@@ -23,181 +29,151 @@ pub(crate) fn article_routes() -> Router<AppState> {
 }
 
 async fn list_articles(
-    Query(params): Query<ArticleListQuery>,
-) -> Result<Json<ArticlesResponse>, StatusCode> {
+    State(state): State<AppState>,
+    auth: Option<AuthToken>,
+    Query(params): Query<ArticleListQueryDto>,
+) -> Result<Json<ArticlesResponse>, AppError> {
     info!("List articles with filters");
 
-    // TODO: Fetch articles from database with filters
-    let articles = vec![];
+    let query = ListArticlesQuery::from_request(params);
+    let user_id = auth.as_ref().map(|u| u.user_id);
+
+    let articles = state.article_service.list_articles(query.clone(), user_id).await?;
+    let articles_count = state.article_service.count_articles(query, user_id).await? as u64;
+
+    let views: Vec<_> = articles.iter().map(ArticleListItem::from_article_view).collect();
 
     Ok(Json(ArticlesResponse {
-        articles,
-        articles_count: 0,
+        articles: views,
+        articles_count,
     }))
 }
 
 async fn feed_articles(
-    Query(params): Query<ArticleListQuery>,
-) -> Result<Json<ArticlesResponse>, StatusCode> {
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Query(params): Query<ArticleListQueryDto>,
+) -> Result<Json<ArticlesResponse>, AppError> {
     info!("Get article feed");
 
-    // TODO: Fetch articles from followed users
-    let articles = vec![];
+    let query = GetFeedQuery::from_request(params, auth.user_id);
 
+    let articles = state.article_service.get_feed(query).await?;
+
+    let views: Vec<_> = articles.iter().map(ArticleListItem::from_article_view).collect();
+
+
+  let articles_count = articles.len() as u64;
     Ok(Json(ArticlesResponse {
-        articles,
-        articles_count: 0,
+        articles: views,
+        articles_count,
     }))
 }
 
-async fn get_article(Path(slug): Path<String>) -> Result<Json<ArticleResponse>, StatusCode> {
+async fn get_article(
+    State(state): State<AppState>,
+    auth: Option<AuthToken>,
+    Path(slug): Path<Slug>,
+) -> Result<Json<ArticleResponse>, AppError> {
     info!("Get article: {}", slug);
 
-    // TODO: Fetch article from database
-    let article = Article {
-        slug: slug.clone(),
-        title: "Mock Article".to_string(),
-        description: "Mock description".to_string(),
-        body: "Mock body content".to_string(),
-        tag_list: vec!["mock".to_string()],
-        created_at: "2024-01-01T00:00:00.000Z".to_string(),
-        updated_at: "2024-01-01T00:00:00.000Z".to_string(),
-        favorited: false,
-        favorites_count: 0,
-        author: Profile {
-            username: "mockauthor".try_into().unwrap(),
-            bio: None,
-            image: None,
-            following: false,
-        },
-    };
+    let article = state
+        .article_service
+        .get_article(&slug, auth.map(|u| u.user_id))
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    let article = ArticleItem::from_article_view(&article);
 
     Ok(Json(ArticleResponse { article }))
 }
 
 async fn create_article(
+    State(state): State<AppState>,
+    auth: AuthToken,
     Json(payload): Json<CreateArticleRequest>,
-) -> Result<Json<ArticleResponse>, StatusCode> {
+) -> Result<Json<ArticleResponse>, AppError> {
     info!("Create article: {}", payload.article.title);
 
-    // TODO: Create slug from title and save to database
-    let slug = payload.article.title.to_lowercase().replace(" ", "-");
+    let command = CreateArticleCommand::from_request(payload, auth.user_id);
 
-    let article = Article {
-        slug: slug.clone(),
-        title: payload.article.title,
-        description: payload.article.description,
-        body: payload.article.body,
-        tag_list: payload.article.tag_list,
-        created_at: "2024-01-01T00:00:00.000Z".to_string(),
-        updated_at: "2024-01-01T00:00:00.000Z".to_string(),
-        favorited: false,
-        favorites_count: 0,
-        author: Profile {
-            username: "currentuser".try_into().unwrap(),
-            bio: None,
-            image: None,
-            following: false,
-        },
-    };
+    let article_view = state.article_service.create_article(command).await?;
+  
 
+    let article = ArticleItem::from_article_view(&article_view);
+  
     Ok(Json(ArticleResponse { article }))
 }
 
 async fn update_article(
-    Path(slug): Path<String>,
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path(slug): Path<Slug>,
     Json(payload): Json<UpdateArticleRequest>,
-) -> Result<Json<ArticleResponse>, StatusCode> {
+) -> Result<Json<ArticleResponse>, AppError> {
     info!("Update article: {}", slug);
 
-    // TODO: Update article in database
-    let new_slug = payload
-        .article
-        .title
-        .as_ref()
-        .map(|t| t.to_lowercase().replace(" ", "-"))
-        .unwrap_or(slug.clone());
+    let command = UpdateArticleCommand::from_request(payload, slug);
 
-    let article = Article {
-        slug: new_slug,
-        title: payload
-            .article
-            .title
-            .unwrap_or("Updated Article".to_string()),
-        description: payload
-            .article
-            .description
-            .unwrap_or("Updated description".to_string()),
-        body: payload.article.body.unwrap_or("Updated body".to_string()),
-        tag_list: vec![],
-        created_at: "2024-01-01T00:00:00.000Z".to_string(),
-        updated_at: "2024-01-01T00:00:00.000Z".to_string(),
-        favorited: false,
-        favorites_count: 0,
-        author: Profile {
-            username: "currentuser".try_into().unwrap(),
-            bio: None,
-            image: None,
-            following: false,
-        },
-    };
+    let updated_article = state.article_service.update_article(command, auth.user_id).await?;
+
+    let article = ArticleItem::from_article_view(&updated_article);
 
     Ok(Json(ArticleResponse { article }))
 }
 
-async fn delete_article(Path(slug): Path<String>) -> Result<StatusCode, StatusCode> {
+async fn delete_article(
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path(slug): Path<Slug>,
+) -> Result<StatusCode, AppError> {
     info!("Delete article: {}", slug);
 
-    // TODO: Delete article from database
+    state.article_service.delete_article(slug, auth.user_id).await?;
+
     Ok(StatusCode::NO_CONTENT)
 }
 
-async fn favorite_article(Path(slug): Path<String>) -> Result<Json<ArticleResponse>, StatusCode> {
+async fn favorite_article(
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path(slug): Path<Slug>,
+) -> Result<Json<ArticleResponse>, AppError> {
     info!("Favorite article: {}", slug);
 
-    // TODO: Add favorite relationship in database
-    let article = Article {
-        slug: slug.clone(),
-        title: "Mock Article".to_string(),
-        description: "Mock description".to_string(),
-        body: "Mock body content".to_string(),
-        tag_list: vec![],
-        created_at: "2024-01-01T00:00:00.000Z".to_string(),
-        updated_at: "2024-01-01T00:00:00.000Z".to_string(),
-        favorited: true,
-        favorites_count: 1,
-        author: Profile {
-            username: "mockauthor".try_into().unwrap(),
-            bio: None,
-            image: None,
-            following: false,
-        },
-    };
+    let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
+        .ok_or_else(|| AppError::NotFound)?;
+
+    state
+        .article_service
+        .favorite_article(auth.user_id, article.id)
+        .await?;
+
+
+    let mut article = ArticleItem::from_article_view(&article);
+    article.favorited = true;
 
     Ok(Json(ArticleResponse { article }))
 }
 
-async fn unfavorite_article(Path(slug): Path<String>) -> Result<Json<ArticleResponse>, StatusCode> {
+async fn unfavorite_article(
+    State(state): State<AppState>,
+    auth: AuthToken,
+    Path(slug): Path<Slug>,
+) -> Result<Json<ArticleResponse>, AppError> {
     info!("Unfavorite article: {}", slug);
 
-    // TODO: Remove favorite relationship from database
-    let article = Article {
-        slug: slug.clone(),
-        title: "Mock Article".to_string(),
-        description: "Mock description".to_string(),
-        body: "Mock body content".to_string(),
-        tag_list: vec![],
-        created_at: "2024-01-01T00:00:00.000Z".to_string(),
-        updated_at: "2024-01-01T00:00:00.000Z".to_string(),
-        favorited: false,
-        favorites_count: 0,
-        author: Profile {
-            username: "mockauthor".try_into().unwrap(),
-            bio: None,
-            image: None,
-            following: false,
-        },
-    };
+  let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
+    .ok_or_else(|| AppError::NotFound)?;
 
-    Ok(Json(ArticleResponse { article }))
+    state
+        .article_service
+        .unfavorite_article(auth.user_id, article.id)
+        .await?;
+
+
+  let mut article = ArticleItem::from_article_view(&article);
+  article.favorited = true;
+
+  Ok(Json(ArticleResponse { article }))
 }

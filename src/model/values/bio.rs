@@ -3,9 +3,7 @@ use sqlx::Type;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 
-
 const MAX_BIO_LENGTH: usize = 1000;
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
 #[sqlx(transparent)]
@@ -25,7 +23,9 @@ impl TryFrom<String> for Bio {
         let trimmed = value.trim();
 
         if trimmed.len() > MAX_BIO_LENGTH {
-            return Err(format!("Bio cannot be longer than {MAX_BIO_LENGTH} characters"));
+            return Err(format!(
+                "Bio cannot be longer than {MAX_BIO_LENGTH} characters"
+            ));
         }
 
         Ok(Bio(trimmed.to_string()))

@@ -2,9 +2,9 @@ mod common;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
+use realworld::tracing::init_tracing;
 use serde_json::json;
 use tower::ServiceExt;
-use realworld::tracing::init_tracing;
 
 #[tokio::test]
 async fn test_get_current_user_with_valid_token() {
@@ -27,7 +27,9 @@ async fn test_get_current_user_with_valid_token() {
                 .method("POST")
                 .uri("/api/users")
                 .header("content-type", "application/json")
-                .body(Body::from(serde_json::to_string(&register_payload).unwrap()))
+                .body(Body::from(
+                    serde_json::to_string(&register_payload).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -109,7 +111,6 @@ async fn test_get_current_user_with_invalid_token_fails() {
 
 #[tokio::test]
 async fn test_update_user() {
-
     init_tracing();
 
     // Given
@@ -117,29 +118,31 @@ async fn test_update_user() {
 
     // First register a user to get a token
     let register_payload = json!({
-            "user": {
-                "username": "currentuser",
-                "email": "current@example.com",
-                "password": "currentpass123"
-            }
-        });
+        "user": {
+            "username": "currentuser",
+            "email": "current@example.com",
+            "password": "currentpass123"
+        }
+    });
 
     let register_response = app
-      .clone()
-      .oneshot(
-        Request::builder()
-          .method("POST")
-          .uri("/api/users")
-          .header("content-type", "application/json")
-          .body(Body::from(serde_json::to_string(&register_payload).unwrap()))
-          .unwrap(),
-      )
-      .await
-      .unwrap();
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/users")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    serde_json::to_string(&register_payload).unwrap(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     let body = axum::body::to_bytes(register_response.into_body(), usize::MAX)
-      .await
-      .unwrap();
+        .await
+        .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
     let token = body["user"]["token"].as_str().unwrap();
 
