@@ -2,8 +2,8 @@ use anyhow::Context;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use crate::app_error::AppError;
+use crate::model::values::user_id::UserId;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -22,7 +22,7 @@ impl JwtHandler {
         JwtHandler { secret }
     }
 
-    pub fn generate_token(&self, user_id: Uuid) -> Result<String, AppError> {
+    pub fn generate_token(&self, user_id: UserId) -> Result<String, AppError> {
         let now = Utc::now();
         let expiration = now + Duration::days(30);
 

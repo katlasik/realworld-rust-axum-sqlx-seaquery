@@ -1,16 +1,19 @@
+use crate::model::values::bio::Bio;
 use crate::model::values::email::Email;
+use crate::model::values::image::Image;
+use crate::model::values::password_hash::PasswordHash;
+use crate::model::values::user_id::UserId;
 use crate::model::values::username::Username;
 use sqlx::Row;
 use sqlx::postgres::PgRow;
-use uuid::Uuid;
 
 pub struct User {
-    pub id: Uuid,
+    pub id: UserId,
     pub email: Email,
-    pub password_hash: String,
+    pub password_hash: PasswordHash,
     pub username: Username,
-    pub bio: Option<String>,
-    pub image: Option<String>,
+    pub bio: Option<Bio>,
+    pub image: Option<Image>,
 }
 
 impl User {

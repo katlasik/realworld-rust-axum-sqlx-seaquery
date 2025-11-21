@@ -2,11 +2,13 @@ use crate::app_error::AppError;
 use crate::persistence::user_repository::{UserRepository};
 use crate::model::persistence::user::User;
 use crate::model::values::email::Email;
+use crate::model::values::password::Password;
+use crate::model::values::password_hash::PasswordHash;
+use crate::model::values::user_id::UserId;
 use anyhow::Result;
 use tracing::log::info;
 use crate::domain::commands::register_command::RegisterCommand;
 use crate::utils::hasher::Hasher;
-use uuid::Uuid;
 use crate::domain::commands::update_user_command::UpdateUserCommand;
 use crate::persistence::indexed_user_field::IndexedUserField;
 use crate::persistence::params::insert_user_params::InsertUserParams;
@@ -55,7 +57,7 @@ impl UserService {
         Ok(user)
     }
 
-    pub async fn login_user(&self, email: Email, password: String) -> Result<User, AppError> {
+    pub async fn login_user(&self, email: Email, password: Password) -> Result<User, AppError> {
         let user = self
             .user_repo
             .get_user_by(IndexedUserField::Email, email.clone())
@@ -71,7 +73,7 @@ impl UserService {
 
     }
 
-    pub async fn get_user_by_id(&self, user_id: Uuid) -> Result<Option<User>, AppError> {
+    pub async fn get_user_by_id(&self, user_id: UserId) -> Result<Option<User>, AppError> {
         let user = self
             .user_repo
             .get_user_by(IndexedUserField::Id, user_id)
@@ -89,13 +91,13 @@ impl UserService {
           user_id: command.user_id,
           email: command.email,
           username: command.username,
-          password_hash: command.password.map(|pw| self.hasher.hash_password(&pw)).transpose()?,
+          password_hash: command.password.map(|pw| self.hasher.hash_password(&pw).map(PasswordHash::from)).transpose()?,
           bio: command.bio,
           image: command.image,
         }
       )
       .await?;
-    
+
     info!("Updated user with id: {}", user.id);
 
     Ok(user)

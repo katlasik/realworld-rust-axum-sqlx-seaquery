@@ -1,4 +1,5 @@
 use crate::model::values::email::Email;
+use crate::model::values::password::Password;
 use crate::model::values::username::Username;
 use serde::{Deserialize, Serialize};
 
@@ -11,5 +12,5 @@ pub struct RegisterRequest {
 pub struct RegisterUser {
     pub username: Username,
     pub email: Email,
-    pub password: String,
+    pub password: Password,
 }

@@ -1,4 +1,6 @@
+use crate::model::values::bio::Bio;
 use crate::model::values::email::Email;
+use crate::model::values::image::Image;
 use crate::model::values::username::Username;
 use serde::{Deserialize, Serialize};
 use crate::model::persistence::user::User;
@@ -13,8 +15,8 @@ pub struct UserData {
     pub email: Email,
     pub token: String,
     pub username: Username,
-    pub bio: Option<String>,
-    pub image: Option<String>,
+    pub bio: Option<Bio>,
+    pub image: Option<Image>,
 }
 
 impl UserData {
@@ -41,9 +43,9 @@ pub struct UpdateUser {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<Username>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub password: Option<String>,
+    pub password: Option<crate::model::values::password::Password>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bio: Option<String>,
+    pub bio: Option<Bio>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub image: Option<String>,
+    pub image: Option<Image>,
 }

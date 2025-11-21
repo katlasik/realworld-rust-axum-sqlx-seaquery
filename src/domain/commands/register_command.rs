@@ -1,11 +1,12 @@
 use crate::http::dto::register::RegisterRequest;
 use crate::model::values::email::Email;
+use crate::model::values::password::Password;
 use crate::model::values::username::Username;
 
 pub struct RegisterCommand {
     pub(crate) username: Username,
     pub(crate) email: Email,
-    pub(crate) password: String,
+    pub(crate) password: Password,
 }
 
 impl RegisterCommand {

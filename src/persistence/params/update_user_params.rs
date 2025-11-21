@@ -1,14 +1,17 @@
-use uuid::Uuid;
+use crate::model::values::bio::Bio;
 use crate::model::values::email::Email;
+use crate::model::values::image::Image;
+use crate::model::values::password_hash::PasswordHash;
+use crate::model::values::user_id::UserId;
 use crate::model::values::username::Username;
 
 pub struct UpdateUserParams {
-  pub(crate) user_id: Uuid,
+  pub(crate) user_id: UserId,
   pub(crate) email: Option<Email>,
   pub(crate) username: Option<Username>,
-  pub(crate) password_hash: Option<String>,
-  pub(crate) bio: Option<String>,
-  pub(crate) image: Option<String>,
+  pub(crate) password_hash: Option<PasswordHash>,
+  pub(crate) bio: Option<Bio>,
+  pub(crate) image: Option<Image>,
 }
 
 impl UpdateUserParams {
@@ -22,13 +25,13 @@ impl UpdateUserParams {
       fields.push(("username".to_string(), username.value().to_string()));
     }
     if let Some(password_hash) = &self.password_hash {
-      fields.push(("password_hash".to_string(), password_hash.clone()));
+      fields.push(("password_hash".to_string(), password_hash.value().to_string()));
     }
     if let Some(bio) = &self.bio {
-      fields.push(("bio".to_string(), bio.clone()));
+      fields.push(("bio".to_string(), bio.value().to_string()));
     }
     if let Some(image) = &self.image {
-      fields.push(("image".to_string(), image.clone()));
+      fields.push(("image".to_string(), image.value().to_string()));
     }
 
     fields

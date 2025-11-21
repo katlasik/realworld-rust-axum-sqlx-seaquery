@@ -66,9 +66,6 @@ impl UserRepository {
         }
         sql_query = sql_query.bind(params.user_id);
 
-        error!("Generated SQL: {:?}", sql_query.sql());
-
-
         let row = sql_query.fetch_one(self.database.pool()).await?;
 
         Ok(User::from_row(row))

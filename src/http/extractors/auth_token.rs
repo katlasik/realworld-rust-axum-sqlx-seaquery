@@ -2,11 +2,12 @@ use axum::{
   extract::{FromRequestParts},
   http::{request::Parts, StatusCode},
 };
-use uuid::Uuid;
 use crate::http::AppState;
+use crate::model::values::user_id::UserId;
+use uuid::Uuid;
 
 pub struct AuthToken{
-  pub(crate) user_id: Uuid,
+  pub(crate) user_id: UserId,
   pub(crate) raw_token: String
 }
 
@@ -35,8 +36,9 @@ impl FromRequestParts<AppState> for AuthToken
       )?;
 
 
-    let user_id = parsed_token.sub.parse::<Uuid>()
+    let uuid: Uuid = parsed_token.sub.parse()
       .map_err(|_| (StatusCode::UNAUTHORIZED, "Couldn't extract user id from token"))?;
+    let user_id = UserId::from(uuid);
 
     Ok(AuthToken {
       user_id,
