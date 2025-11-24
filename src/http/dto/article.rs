@@ -1,4 +1,7 @@
 use crate::http::dto::profile::Profile;
+use crate::model::limit::Limit;
+use crate::model::offset::Offset;
+use crate::model::persistence::article_view::{ArticleListView, ArticleView};
 use crate::model::values::article_body::ArticleBody;
 use crate::model::values::article_description::ArticleDescription;
 use crate::model::values::article_title::ArticleTitle;
@@ -7,9 +10,6 @@ use crate::model::values::tag_name::TagName;
 use crate::model::values::username::Username;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::model::limit::Limit;
-use crate::model::offset::Offset;
-use crate::model::persistence::article_view::{ArticleListView, ArticleView};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ArticleResponse {
@@ -39,28 +39,28 @@ pub struct ArticleItem {
     #[serde(rename = "favoritesCount")]
     pub favorites_count: i64,
     pub author: Profile,
-} 
+}
 
 impl ArticleItem {
-  pub(crate) fn from_article_view(view: &ArticleView) -> ArticleItem {
-    ArticleItem {
-      slug: view.slug.clone(),
-      title: view.title.clone(),
-      description: view.description.clone(),
-      body: view.body.clone(),
-      tag_list: view.tag_list.clone(),
-      created_at: view.created_at,
-      updated_at: view.updated_at,
-      favorited: view.favorited,
-      favorites_count: view.favorites_count,
-      author: Profile {
-        username: view.author.clone(),
-        bio: view.author_bio.clone(),
-        image: view.author_image.clone(),
-        following: view.following,
-      },
+    pub(crate) fn from_article_view(view: &ArticleView) -> ArticleItem {
+        ArticleItem {
+            slug: view.slug.clone(),
+            title: view.title.clone(),
+            description: view.description.clone(),
+            body: view.body.clone(),
+            tag_list: view.tag_list.clone(),
+            created_at: view.created_at,
+            updated_at: view.updated_at,
+            favorited: view.favorited,
+            favorites_count: view.favorites_count,
+            author: Profile {
+                username: view.author.clone(),
+                bio: view.author_bio.clone(),
+                image: view.author_image.clone(),
+                following: view.following,
+            },
+        }
     }
-  }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -81,24 +81,24 @@ pub struct ArticleListItem {
 }
 
 impl ArticleListItem {
-  pub(crate) fn from_article_view(view: &ArticleListView) -> ArticleListItem {
-    ArticleListItem {
-      slug: view.slug.clone(),
-      title: view.title.clone(),
-      description: view.description.clone(),
-      tag_list: view.tag_list.clone(),
-      created_at: view.created_at,
-      updated_at: view.updated_at,
-      favorited: view.favorited,
-      favorites_count: view.favorites_count,
-      author: Profile {
-        username: view.author.clone(),
-        bio: view.author_bio.clone(),
-        image: view.author_image.clone(),
-        following: view.following,
-      },
+    pub(crate) fn from_article_view(view: &ArticleListView) -> ArticleListItem {
+        ArticleListItem {
+            slug: view.slug.clone(),
+            title: view.title.clone(),
+            description: view.description.clone(),
+            tag_list: view.tag_list.clone(),
+            created_at: view.created_at,
+            updated_at: view.updated_at,
+            favorited: view.favorited,
+            favorites_count: view.favorites_count,
+            author: Profile {
+                username: view.author.clone(),
+                bio: view.author_bio.clone(),
+                image: view.author_image.clone(),
+                following: view.following,
+            },
+        }
     }
-  }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

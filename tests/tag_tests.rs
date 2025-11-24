@@ -89,7 +89,7 @@ async fn test_get_tags_returns_tags_from_articles() {
                     .method("POST")
                     .uri("/api/articles")
                     .header("content-type", "application/json")
-                    .header("authorization", format!("Bearer {}", token))
+                    .header("authorization", format!("Token {}", token))
                     .body(Body::from(serde_json::to_string(&payload).unwrap()))
                     .unwrap(),
             )
@@ -149,7 +149,7 @@ async fn test_get_tags_does_not_require_authentication() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&article).unwrap()))
                 .unwrap(),
         )
@@ -200,7 +200,7 @@ async fn test_get_tags_returns_unique_tags() {
                     .method("POST")
                     .uri("/api/articles")
                     .header("content-type", "application/json")
-                    .header("authorization", format!("Bearer {}", token))
+                    .header("authorization", format!("Token {}", token))
                     .body(Body::from(serde_json::to_string(&payload).unwrap()))
                     .unwrap(),
             )

@@ -52,7 +52,7 @@ impl TagRepository {
         let (sql, values) = Query::select()
             .column(Tags::Name)
             .from(Tags::Table)
-            .order_by(Tags::Name, Order::Asc)
+            .order_by(Tags::Name, Order::Desc)
             .build_sqlx(PostgresQueryBuilder);
 
         let rows = sqlx::query_with(&sql, values)

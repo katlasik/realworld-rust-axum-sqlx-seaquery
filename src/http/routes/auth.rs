@@ -6,9 +6,9 @@ use crate::http::dto::login::LoginRequest;
 use crate::http::dto::register::RegisterRequest;
 use crate::http::dto::user::{UserData, UserResponse};
 use axum::extract::State;
+use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{Json, Router};
-use axum::http::StatusCode;
 use tracing::info;
 
 pub(crate) fn auth_routes() -> Router<AppState> {

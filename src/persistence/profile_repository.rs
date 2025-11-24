@@ -27,12 +27,9 @@ impl ProfileRepository {
             .columns([UserFollows::FollowerId, UserFollows::FolloweeId])
             .values_panic([follower_id.into(), followee_id.into()])
             .on_conflict(
-                sea_query::OnConflict::columns([
-                    UserFollows::FollowerId,
-                    UserFollows::FolloweeId,
-                ])
-                .do_nothing()
-                .to_owned(),
+                sea_query::OnConflict::columns([UserFollows::FollowerId, UserFollows::FolloweeId])
+                    .do_nothing()
+                    .to_owned(),
             )
             .build_sqlx(PostgresQueryBuilder);
 
@@ -74,7 +71,10 @@ impl ProfileRepository {
             .to_owned();
 
         let (sql, values) = Query::select()
-            .expr_as(Expr::exists(subquery), sea_query::Alias::new("is_following"))
+            .expr_as(
+                Expr::exists(subquery),
+                sea_query::Alias::new("is_following"),
+            )
             .build_sqlx(PostgresQueryBuilder);
 
         let row = sqlx::query_with(&sql, values)

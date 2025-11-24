@@ -1,7 +1,9 @@
 use crate::app_error::AppError;
 use crate::domain::commands::add_comment_command::AddCommentCommand;
 use crate::http::AppState;
-use crate::http::dto::comment::{CommentItem, CommentResponse, CommentsResponse, CreateCommentRequest};
+use crate::http::dto::comment::{
+    CommentItem, CommentResponse, CommentsResponse, CreateCommentRequest,
+};
 use crate::http::extractors::auth_token::AuthToken;
 use crate::model::values::comment_id::CommentId;
 use crate::model::values::slug::Slug;

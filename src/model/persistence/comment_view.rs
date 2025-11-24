@@ -1,10 +1,10 @@
-use chrono::{DateTime, Utc};
-use sqlx::Row;
 use crate::model::values::bio::Bio;
 use crate::model::values::comment_body::CommentBody;
 use crate::model::values::comment_id::CommentId;
 use crate::model::values::image::Image;
 use crate::model::values::username::Username;
+use chrono::{DateTime, Utc};
+use sqlx::Row;
 
 pub struct CommentView {
     pub id: CommentId,
@@ -18,7 +18,6 @@ pub struct CommentView {
 }
 
 impl CommentView {
-
     pub fn from_row(row: sqlx::postgres::PgRow) -> CommentView {
         CommentView {
             id: row.get("id"),

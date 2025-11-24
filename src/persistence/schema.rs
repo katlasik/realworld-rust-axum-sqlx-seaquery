@@ -42,6 +42,7 @@ pub enum ArticleTags {
     Table,
     ArticleId,
     TagId,
+    CreatedAt,
 }
 
 #[allow(dead_code)]

@@ -1,9 +1,9 @@
 use crate::http::dto::profile::Profile;
+use crate::model::persistence::comment_view::CommentView;
 use crate::model::values::comment_body::CommentBody;
 use crate::model::values::comment_id::CommentId;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::model::persistence::comment_view::CommentView;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommentResponse {

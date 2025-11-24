@@ -64,7 +64,13 @@ async fn test_get_profile_without_authentication() {
 #[tokio::test]
 async fn test_get_profile_with_authentication() {
     let app = common::create_test_app().await;
-    register_user(app.clone(), "profileuser", "profile@example.com", "password123").await;
+    register_user(
+        app.clone(),
+        "profileuser",
+        "profile@example.com",
+        "password123",
+    )
+    .await;
     let token = register_user(app.clone(), "viewer", "viewer@example.com", "password123").await;
 
     let response = app
@@ -72,7 +78,7 @@ async fn test_get_profile_with_authentication() {
             Request::builder()
                 .method("GET")
                 .uri("/api/profiles/profileuser")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -111,15 +117,27 @@ async fn test_get_nonexistent_profile_returns_404() {
 #[tokio::test]
 async fn test_follow_user() {
     let app = common::create_test_app().await;
-    register_user(app.clone(), "usertofollow", "tofollow@example.com", "password123").await;
-    let follower_token = register_user(app.clone(), "follower", "follower@example.com", "password123").await;
+    register_user(
+        app.clone(),
+        "usertofollow",
+        "tofollow@example.com",
+        "password123",
+    )
+    .await;
+    let follower_token = register_user(
+        app.clone(),
+        "follower",
+        "follower@example.com",
+        "password123",
+    )
+    .await;
 
     let response = app
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/profiles/usertofollow/follow")
-                .header("authorization", format!("Bearer {}", follower_token))
+                .header("authorization", format!("Token {}", follower_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -140,7 +158,13 @@ async fn test_follow_user() {
 #[tokio::test]
 async fn test_follow_user_without_authentication_fails() {
     let app = common::create_test_app().await;
-    register_user(app.clone(), "usertofollow", "tofollow@example.com", "password123").await;
+    register_user(
+        app.clone(),
+        "usertofollow",
+        "tofollow@example.com",
+        "password123",
+    )
+    .await;
 
     let response = app
         .oneshot(
@@ -159,14 +183,20 @@ async fn test_follow_user_without_authentication_fails() {
 #[tokio::test]
 async fn test_follow_nonexistent_user_fails() {
     let app = common::create_test_app().await;
-    let token = register_user(app.clone(), "follower", "follower@example.com", "password123").await;
+    let token = register_user(
+        app.clone(),
+        "follower",
+        "follower@example.com",
+        "password123",
+    )
+    .await;
 
     let response = app
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/profiles/nonexistentuser/follow")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -179,15 +209,27 @@ async fn test_follow_nonexistent_user_fails() {
 #[tokio::test]
 async fn test_unfollow_user() {
     let app = common::create_test_app().await;
-    register_user(app.clone(), "usertounfollow", "tounfollow@example.com", "password123").await;
-    let follower_token = register_user(app.clone(), "follower", "follower@example.com", "password123").await;
+    register_user(
+        app.clone(),
+        "usertounfollow",
+        "tounfollow@example.com",
+        "password123",
+    )
+    .await;
+    let follower_token = register_user(
+        app.clone(),
+        "follower",
+        "follower@example.com",
+        "password123",
+    )
+    .await;
 
     app.clone()
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/profiles/usertounfollow/follow")
-                .header("authorization", format!("Bearer {}", follower_token))
+                .header("authorization", format!("Token {}", follower_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -199,7 +241,7 @@ async fn test_unfollow_user() {
             Request::builder()
                 .method("DELETE")
                 .uri("/api/profiles/usertounfollow/follow")
-                .header("authorization", format!("Bearer {}", follower_token))
+                .header("authorization", format!("Token {}", follower_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -220,7 +262,13 @@ async fn test_unfollow_user() {
 #[tokio::test]
 async fn test_unfollow_user_without_authentication_fails() {
     let app = common::create_test_app().await;
-    register_user(app.clone(), "usertounfollow", "tounfollow@example.com", "password123").await;
+    register_user(
+        app.clone(),
+        "usertounfollow",
+        "tounfollow@example.com",
+        "password123",
+    )
+    .await;
 
     let response = app
         .oneshot(
@@ -239,14 +287,20 @@ async fn test_unfollow_user_without_authentication_fails() {
 #[tokio::test]
 async fn test_unfollow_nonexistent_user_fails() {
     let app = common::create_test_app().await;
-    let token = register_user(app.clone(), "follower", "follower@example.com", "password123").await;
+    let token = register_user(
+        app.clone(),
+        "follower",
+        "follower@example.com",
+        "password123",
+    )
+    .await;
 
     let response = app
         .oneshot(
             Request::builder()
                 .method("DELETE")
                 .uri("/api/profiles/nonexistentuser/follow")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -259,15 +313,22 @@ async fn test_unfollow_nonexistent_user_fails() {
 #[tokio::test]
 async fn test_get_profile_shows_following_status() {
     let app = common::create_test_app().await;
-    register_user(app.clone(), "targetuser", "target@example.com", "password123").await;
-    let viewer_token = register_user(app.clone(), "viewer", "viewer@example.com", "password123").await;
+    register_user(
+        app.clone(),
+        "targetuser",
+        "target@example.com",
+        "password123",
+    )
+    .await;
+    let viewer_token =
+        register_user(app.clone(), "viewer", "viewer@example.com", "password123").await;
 
     app.clone()
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/profiles/targetuser/follow")
-                .header("authorization", format!("Bearer {}", viewer_token))
+                .header("authorization", format!("Token {}", viewer_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -279,7 +340,7 @@ async fn test_get_profile_shows_following_status() {
             Request::builder()
                 .method("GET")
                 .uri("/api/profiles/targetuser")
-                .header("authorization", format!("Bearer {}", viewer_token))
+                .header("authorization", format!("Token {}", viewer_token))
                 .body(Body::empty())
                 .unwrap(),
         )

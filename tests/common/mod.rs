@@ -1,24 +1,22 @@
-use std::sync::Once;
 use axum::Router;
 use rand::Rng;
 use realworld::app_config::AppConfig;
 use realworld::application::create_app_state;
 use realworld::http::router;
 use sqlx::postgres::PgPoolOptions;
+use std::sync::Once;
 use tracing::info;
 use tryphon::{Config, EnvOverrides};
 
 static INIT: Once = Once::new();
 
 pub fn init_tracing() {
-  INIT.call_once_force(|_| {
-    tracing_subscriber::fmt()
-      .with_test_writer()
-      .with_env_filter(
-        std::env::var("RUST_LOG").unwrap_or_else(|_| "debug".to_string())
-      )
-      .init();
-  });
+    INIT.call_once_force(|_| {
+        tracing_subscriber::fmt()
+            .with_test_writer()
+            .with_env_filter(std::env::var("RUST_LOG").unwrap_or_else(|_| "debug".to_string()))
+            .init();
+    });
 }
 
 pub async fn create_test_app() -> Router {
@@ -69,9 +67,7 @@ impl TestDatabase {
             .connect(format!("postgresql://{}:{}@localhost:5432/{}", user, password, name).as_str())
             .await?;
 
-        sqlx::migrate!("./migrations")
-            .run(&test_db)
-            .await?;
+        sqlx::migrate!("./migrations").run(&test_db).await?;
 
         info!("Ran migrations on test database: {}", name);
 

@@ -18,55 +18,55 @@ pub struct CommentRepository {
 }
 
 fn comment_view_query(user_id: Option<UserId>) -> sea_query::SelectStatement {
+    let mut select = Query::select();
 
-  let mut select = Query::select();
-
-  select
-    .column((Comments::Table, Comments::Id))
-    .column((Comments::Table, Comments::Body))
-    .column((Comments::Table, Comments::CreatedAt))
-    .column((Comments::Table, Comments::UpdatedAt))
-    .expr_as(
-      Expr::col((Users::Table, Users::Username)),
-      Alias::new("author_username"),
-    )
-    .expr_as(
-      Expr::col((Users::Table, Users::Bio)),
-      Alias::new("author_bio"),
-    )
-    .expr_as(
-      Expr::col((Users::Table, Users::Image)),
-      Alias::new("author_image"),
-    )
-    .from(Comments::Table)
-    .inner_join(
-      Users::Table,
-      Expr::col((Comments::Table, Comments::AuthorId))
-        .eq(Expr::col((Users::Table, Users::Id))),
-    );
-
-  match user_id {
-    Some(user_id) => {
-      let subquery = Query::select()
-        .expr(Expr::val(1))
-        .from(UserFollows::Table)
-        .and_where(
-          Expr::col((UserFollows::Table, UserFollows::FollowerId)).eq(user_id)
-            .and(
-              Expr::col((UserFollows::Table, UserFollows::FolloweeId))
-                .eq(Expr::col((Users::Table, Users::Id))),
-            ),
+    select
+        .column((Comments::Table, Comments::Id))
+        .column((Comments::Table, Comments::Body))
+        .column((Comments::Table, Comments::CreatedAt))
+        .column((Comments::Table, Comments::UpdatedAt))
+        .expr_as(
+            Expr::col((Users::Table, Users::Username)),
+            Alias::new("author_username"),
         )
-        .to_owned();
+        .expr_as(
+            Expr::col((Users::Table, Users::Bio)),
+            Alias::new("author_bio"),
+        )
+        .expr_as(
+            Expr::col((Users::Table, Users::Image)),
+            Alias::new("author_image"),
+        )
+        .from(Comments::Table)
+        .inner_join(
+            Users::Table,
+            Expr::col((Comments::Table, Comments::AuthorId))
+                .eq(Expr::col((Users::Table, Users::Id))),
+        );
 
-      select.expr_as(Expr::exists(subquery), Alias::new("following"));
-    }
-    None => {
-      select.expr_as(Expr::val(false), Alias::new("following"));
-    }
-  }
+    match user_id {
+        Some(user_id) => {
+            let subquery = Query::select()
+                .expr(Expr::val(1))
+                .from(UserFollows::Table)
+                .and_where(
+                    Expr::col((UserFollows::Table, UserFollows::FollowerId))
+                        .eq(user_id)
+                        .and(
+                            Expr::col((UserFollows::Table, UserFollows::FolloweeId))
+                                .eq(Expr::col((Users::Table, Users::Id))),
+                        ),
+                )
+                .to_owned();
 
-  select
+            select.expr_as(Expr::exists(subquery), Alias::new("following"));
+        }
+        None => {
+            select.expr_as(Expr::val(false), Alias::new("following"));
+        }
+    }
+
+    select
 }
 
 impl CommentRepository {
@@ -136,14 +136,14 @@ impl CommentRepository {
     ) -> Result<Vec<CommentView>, AppError> {
         let mut query = comment_view_query(user_id);
 
-      let (sql, values) = query.and_where(Expr::col(Comments::ArticleId).eq(article_id))
-          .order_by(Comments::CreatedAt, Order::Desc)
-        .build_sqlx(PostgresQueryBuilder);
+        let (sql, values) = query
+            .and_where(Expr::col(Comments::ArticleId).eq(article_id))
+            .order_by(Comments::CreatedAt, Order::Desc)
+            .build_sqlx(PostgresQueryBuilder);
 
-
-      let rows = sqlx::query_with(&sql, values)
-        .fetch_all(self.database.pool())
-        .await?;
+        let rows = sqlx::query_with(&sql, values)
+            .fetch_all(self.database.pool())
+            .await?;
 
         Ok(rows.into_iter().map(CommentView::from_row).collect())
     }
@@ -153,17 +153,17 @@ impl CommentRepository {
         comment_id: CommentId,
         user_id: Option<UserId>,
     ) -> Result<CommentView, AppError> {
-      let mut query = comment_view_query(user_id);
+        let mut query = comment_view_query(user_id);
 
-      let (sql, values) = query.and_where(Expr::col((Comments::Table, Comments::Id)).eq(comment_id))
-        .order_by(Comments::CreatedAt, Order::Desc)
-        .build_sqlx(PostgresQueryBuilder);
+        let (sql, values) = query
+            .and_where(Expr::col((Comments::Table, Comments::Id)).eq(comment_id))
+            .order_by(Comments::CreatedAt, Order::Desc)
+            .build_sqlx(PostgresQueryBuilder);
 
+        let row = sqlx::query_with(&sql, values)
+            .fetch_one(self.database.pool())
+            .await?;
 
-      let row = sqlx::query_with(&sql, values)
-        .fetch_one(self.database.pool())
-        .await?;
-
-      Ok(CommentView::from_row(row))
+        Ok(CommentView::from_row(row))
     }
 }

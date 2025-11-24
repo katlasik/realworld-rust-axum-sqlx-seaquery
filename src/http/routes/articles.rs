@@ -5,8 +5,8 @@ use crate::domain::commands::list_articles_query::ListArticlesQuery;
 use crate::domain::commands::update_article_command::UpdateArticleCommand;
 use crate::http::AppState;
 use crate::http::dto::article::{
-  ArticleItem, ArticleListItem, ArticleListQuery as ArticleListQueryDto, ArticleResponse,
-  ArticlesResponse, CreateArticleRequest, UpdateArticleRequest,
+    ArticleItem, ArticleListItem, ArticleListQuery as ArticleListQueryDto, ArticleResponse,
+    ArticlesResponse, CreateArticleRequest, UpdateArticleRequest,
 };
 use crate::http::extractors::auth_token::AuthToken;
 use crate::model::values::slug::Slug;
@@ -38,10 +38,16 @@ async fn list_articles(
     let query = ListArticlesQuery::from_request(params);
     let user_id = auth.as_ref().map(|u| u.user_id);
 
-    let articles = state.article_service.list_articles(query.clone(), user_id).await?;
+    let articles = state
+        .article_service
+        .list_articles(query.clone(), user_id)
+        .await?;
     let articles_count = state.article_service.count_articles(query, user_id).await?;
 
-    let views: Vec<_> = articles.iter().map(ArticleListItem::from_article_view).collect();
+    let views: Vec<_> = articles
+        .iter()
+        .map(ArticleListItem::from_article_view)
+        .collect();
 
     Ok(Json(ArticlesResponse {
         articles: views,
@@ -60,10 +66,12 @@ async fn feed_articles(
 
     let articles = state.article_service.get_feed(query).await?;
 
-    let views: Vec<_> = articles.iter().map(ArticleListItem::from_article_view).collect();
+    let views: Vec<_> = articles
+        .iter()
+        .map(ArticleListItem::from_article_view)
+        .collect();
 
-
-  let articles_count = articles.len() as u64;
+    let articles_count = articles.len() as u64;
     Ok(Json(ArticlesResponse {
         articles: views,
         articles_count,
@@ -114,7 +122,10 @@ async fn update_article(
 
     let command = UpdateArticleCommand::from_request(payload, slug);
 
-    let updated_article = state.article_service.update_article(command, auth.user_id).await?;
+    let updated_article = state
+        .article_service
+        .update_article(command, auth.user_id)
+        .await?;
 
     let article = ArticleItem::from_article_view(&updated_article);
 
@@ -128,7 +139,10 @@ async fn delete_article(
 ) -> Result<StatusCode, AppError> {
     info!("Delete article: {}", slug);
 
-    state.article_service.delete_article(slug, auth.user_id).await?;
+    state
+        .article_service
+        .delete_article(slug, auth.user_id)
+        .await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -145,8 +159,11 @@ async fn favorite_article(
         .favorite_article(auth.user_id, &slug)
         .await?;
 
-    let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
-      .ok_or_else(|| AppError::NotFound)?;
+    let article = state
+        .article_service
+        .get_article(&slug, Some(auth.user_id))
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
 
     let article = ArticleItem::from_article_view(&article);
 
@@ -165,10 +182,13 @@ async fn unfavorite_article(
         .unfavorite_article(auth.user_id, &slug)
         .await?;
 
-  let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
-    .ok_or_else(|| AppError::NotFound)?;
+    let article = state
+        .article_service
+        .get_article(&slug, Some(auth.user_id))
+        .await?
+        .ok_or_else(|| AppError::NotFound)?;
 
-  let article = ArticleItem::from_article_view(&article);
+    let article = ArticleItem::from_article_view(&article);
 
-  Ok(Json(ArticleResponse { article }))
+    Ok(Json(ArticleResponse { article }))
 }

@@ -16,10 +16,12 @@ pub struct UpdateArticleCommand {
 }
 
 impl UpdateArticleCommand {
-
     pub fn from_request(dto: UpdateArticleRequest, slug: Slug) -> Self {
-
-        let new_slug = dto.article.title.as_ref().map(|t| Slug::from_title(t.value()));
+        let new_slug = dto
+            .article
+            .title
+            .as_ref()
+            .map(|t| Slug::from_title(t.value()));
 
         UpdateArticleCommand {
             old_slug: slug,
@@ -31,7 +33,6 @@ impl UpdateArticleCommand {
     }
 
     pub fn to_params(&self, article_id: ArticleId) -> UpdateArticleParams {
-
         UpdateArticleParams {
             article_id,
             slug: self.new_slug.clone(),

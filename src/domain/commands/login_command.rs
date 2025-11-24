@@ -9,7 +9,6 @@ pub struct LoginCommand {
 }
 
 impl LoginCommand {
-
     pub fn from_request(dto: LoginRequest) -> Self {
         LoginCommand {
             email: dto.user.email,

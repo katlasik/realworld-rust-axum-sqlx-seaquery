@@ -27,8 +27,8 @@ impl FromRequestParts<AppState> for Option<AuthToken> {
 
         if let Some(raw_header) = maybe_raw_header {
             let token = raw_header
-                .strip_prefix("Bearer ")
-                .ok_or((StatusCode::UNAUTHORIZED, "Invalid Bearer token"))?;
+                .strip_prefix("Token ")
+                .ok_or((StatusCode::UNAUTHORIZED, "Invalid Token format"))?;
 
             let parsed_token = jwt
                 .verify_token(token)

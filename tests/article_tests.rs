@@ -54,7 +54,7 @@ async fn test_create_article_with_valid_data() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )
@@ -134,7 +134,7 @@ async fn test_list_articles_returns_all_articles() {
                     .method("POST")
                     .uri("/api/articles")
                     .header("content-type", "application/json")
-                    .header("authorization", format!("Bearer {}", token))
+                    .header("authorization", format!("Token {}", token))
                     .body(Body::from(serde_json::to_string(&payload).unwrap()))
                     .unwrap(),
             )
@@ -183,7 +183,7 @@ async fn test_get_article_by_slug() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -249,7 +249,7 @@ async fn test_update_article_by_author() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -270,13 +270,12 @@ async fn test_update_article_by_author() {
                 .method("PUT")
                 .uri("/api/articles/original-title")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&update_payload).unwrap()))
                 .unwrap(),
         )
         .await
         .unwrap();
-
 
     assert_eq!(response.status(), StatusCode::OK);
 
@@ -292,10 +291,10 @@ async fn test_update_article_by_author() {
 
 #[tokio::test]
 async fn test_update_article_to_existing_slug_fails() {
-  let app = common::create_test_app().await;
-  let token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let app = common::create_test_app().await;
+    let token = register_user(app.clone(), "author", "author@example.com", "password123").await;
 
-  let create_payload = json!({
+    let create_payload = json!({
         "article": {
             "title": "Original Title 1",
             "description": "Original description",
@@ -303,20 +302,20 @@ async fn test_update_article_to_existing_slug_fails() {
         }
     });
 
-  app.clone()
-    .oneshot(
-      Request::builder()
-        .method("POST")
-        .uri("/api/articles")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
-        .unwrap(),
-    )
-    .await
-    .unwrap();
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", token))
+                .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
-  let create_payload = json!({
+    let create_payload = json!({
         "article": {
             "title": "Original Title 2",
             "description": "Original description",
@@ -324,20 +323,20 @@ async fn test_update_article_to_existing_slug_fails() {
         }
     });
 
-  app.clone()
-    .oneshot(
-      Request::builder()
-        .method("POST")
-        .uri("/api/articles")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
-        .unwrap(),
-    )
-    .await
-    .unwrap();
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", token))
+                .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
-  let update_payload = json!({
+    let update_payload = json!({
         "article": {
             "title": "Original Title 1",
             "description": "Updated description",
@@ -345,28 +344,27 @@ async fn test_update_article_to_existing_slug_fails() {
         }
     });
 
-  let response = app
-    .oneshot(
-      Request::builder()
-        .method("PUT")
-        .uri("/api/articles/original-title-2")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(serde_json::to_string(&update_payload).unwrap()))
-        .unwrap(),
-    )
-    .await
-    .unwrap();
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("PUT")
+                .uri("/api/articles/original-title-2")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", token))
+                .body(Body::from(serde_json::to_string(&update_payload).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
-
-  assert_eq!(response.status(), StatusCode::CONFLICT);
-
+    assert_eq!(response.status(), StatusCode::CONFLICT);
 }
 
 #[tokio::test]
 async fn test_update_article_by_non_author_fails() {
     let app = common::create_test_app().await;
-    let author_token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
     let other_token = register_user(app.clone(), "other", "other@example.com", "password123").await;
 
     let create_payload = json!({
@@ -383,7 +381,7 @@ async fn test_update_article_by_non_author_fails() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", author_token))
+                .header("authorization", format!("Token {}", author_token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -402,7 +400,7 @@ async fn test_update_article_by_non_author_fails() {
                 .method("PUT")
                 .uri("/api/articles/authors-article")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", other_token))
+                .header("authorization", format!("Token {}", other_token))
                 .body(Body::from(serde_json::to_string(&update_payload).unwrap()))
                 .unwrap(),
         )
@@ -432,7 +430,7 @@ async fn test_delete_article_by_author() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -444,7 +442,7 @@ async fn test_delete_article_by_author() {
             Request::builder()
                 .method("DELETE")
                 .uri("/api/articles/to-be-deleted")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -457,7 +455,8 @@ async fn test_delete_article_by_author() {
 #[tokio::test]
 async fn test_delete_article_by_non_author_fails() {
     let app = common::create_test_app().await;
-    let author_token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
     let other_token = register_user(app.clone(), "other", "other@example.com", "password123").await;
 
     let create_payload = json!({
@@ -475,7 +474,7 @@ async fn test_delete_article_by_non_author_fails() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", author_token))
+                .header("authorization", format!("Token {}", author_token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -487,7 +486,7 @@ async fn test_delete_article_by_non_author_fails() {
             Request::builder()
                 .method("DELETE")
                 .uri("/api/articles/protected-article")
-                .header("authorization", format!("Bearer {}", other_token))
+                .header("authorization", format!("Token {}", other_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -500,7 +499,8 @@ async fn test_delete_article_by_non_author_fails() {
 #[tokio::test]
 async fn test_favorite_article() {
     let app = common::create_test_app().await;
-    let author_token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
     let user_token = register_user(app.clone(), "user", "user@example.com", "password123").await;
 
     let create_payload = json!({
@@ -518,7 +518,7 @@ async fn test_favorite_article() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", author_token))
+                .header("authorization", format!("Token {}", author_token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -530,7 +530,7 @@ async fn test_favorite_article() {
             Request::builder()
                 .method("POST")
                 .uri("/api/articles/article-to-favorite/favorite")
-                .header("authorization", format!("Bearer {}", user_token))
+                .header("authorization", format!("Token {}", user_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -550,7 +550,8 @@ async fn test_favorite_article() {
 #[tokio::test]
 async fn test_unfavorite_article() {
     let app = common::create_test_app().await;
-    let author_token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
     let user_token = register_user(app.clone(), "user", "user@example.com", "password123").await;
 
     let create_payload = json!({
@@ -568,7 +569,7 @@ async fn test_unfavorite_article() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", author_token))
+                .header("authorization", format!("Token {}", author_token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -580,7 +581,7 @@ async fn test_unfavorite_article() {
             Request::builder()
                 .method("POST")
                 .uri("/api/articles/article-to-unfavorite/favorite")
-                .header("authorization", format!("Bearer {}", user_token))
+                .header("authorization", format!("Token {}", user_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -592,7 +593,7 @@ async fn test_unfavorite_article() {
             Request::builder()
                 .method("DELETE")
                 .uri("/api/articles/article-to-unfavorite/favorite")
-                .header("authorization", format!("Bearer {}", user_token))
+                .header("authorization", format!("Token {}", user_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -605,15 +606,22 @@ async fn test_unfavorite_article() {
 #[tokio::test]
 async fn test_get_article_feed_for_authenticated_user() {
     let app = common::create_test_app().await;
-    let author_token = register_user(app.clone(), "author", "author@example.com", "password123").await;
-    let follower_token = register_user(app.clone(), "follower", "follower@example.com", "password123").await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let follower_token = register_user(
+        app.clone(),
+        "follower",
+        "follower@example.com",
+        "password123",
+    )
+    .await;
 
     app.clone()
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/profiles/author/follow")
-                .header("authorization", format!("Bearer {}", follower_token))
+                .header("authorization", format!("Token {}", follower_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -635,7 +643,7 @@ async fn test_get_article_feed_for_authenticated_user() {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", author_token))
+                .header("authorization", format!("Token {}", author_token))
                 .body(Body::from(serde_json::to_string(&create_payload).unwrap()))
                 .unwrap(),
         )
@@ -647,7 +655,7 @@ async fn test_get_article_feed_for_authenticated_user() {
             Request::builder()
                 .method("GET")
                 .uri("/api/articles/feed")
-                .header("authorization", format!("Bearer {}", follower_token))
+                .header("authorization", format!("Token {}", follower_token))
                 .body(Body::empty())
                 .unwrap(),
         )

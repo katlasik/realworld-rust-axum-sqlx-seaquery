@@ -49,7 +49,7 @@ async fn create_article(app: axum::Router, token: &str, title: &str) -> String {
                 .method("POST")
                 .uri("/api/articles")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )
@@ -81,7 +81,7 @@ async fn test_add_comment_to_article() {
                 .method("POST")
                 .uri(format!("/api/articles/{}/comments", slug))
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )
@@ -143,7 +143,7 @@ async fn test_add_comment_to_nonexistent_article_fails() {
                 .method("POST")
                 .uri("/api/articles/nonexistent-slug/comments")
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )
@@ -169,7 +169,7 @@ async fn test_get_comments_for_article() {
                     .method("POST")
                     .uri(format!("/api/articles/{}/comments", slug))
                     .header("content-type", "application/json")
-                    .header("authorization", format!("Bearer {}", token))
+                    .header("authorization", format!("Token {}", token))
                     .body(Body::from(serde_json::to_string(&payload).unwrap()))
                     .unwrap(),
             )
@@ -235,7 +235,7 @@ async fn test_delete_comment_by_author() {
                 .method("POST")
                 .uri(format!("/api/articles/{}/comments", slug))
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )
@@ -253,7 +253,7 @@ async fn test_delete_comment_by_author() {
             Request::builder()
                 .method("DELETE")
                 .uri(format!("/api/articles/{}/comments/{}", slug, comment_id))
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -266,7 +266,8 @@ async fn test_delete_comment_by_author() {
 #[tokio::test]
 async fn test_delete_comment_by_non_author_fails() {
     let app = common::create_test_app().await;
-    let author_token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
     let other_token = register_user(app.clone(), "other", "other@example.com", "password123").await;
     let slug = create_article(app.clone(), &author_token, "Protected Comment Article").await;
 
@@ -283,7 +284,7 @@ async fn test_delete_comment_by_non_author_fails() {
                 .method("POST")
                 .uri(format!("/api/articles/{}/comments", slug))
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", author_token))
+                .header("authorization", format!("Token {}", author_token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )
@@ -301,7 +302,7 @@ async fn test_delete_comment_by_non_author_fails() {
             Request::builder()
                 .method("DELETE")
                 .uri(format!("/api/articles/{}/comments/{}", slug, comment_id))
-                .header("authorization", format!("Bearer {}", other_token))
+                .header("authorization", format!("Token {}", other_token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -330,7 +331,7 @@ async fn test_delete_comment_without_authentication_fails() {
                 .method("POST")
                 .uri(format!("/api/articles/{}/comments", slug))
                 .header("content-type", "application/json")
-                .header("authorization", format!("Bearer {}", token))
+                .header("authorization", format!("Token {}", token))
                 .body(Body::from(serde_json::to_string(&payload).unwrap()))
                 .unwrap(),
         )

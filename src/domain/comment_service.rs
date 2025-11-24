@@ -33,7 +33,6 @@ impl CommentService {
         self.comment_repo.delete_comment(comment_id).await
     }
 
-
     pub async fn add_comment(
         &self,
         command: AddCommentCommand,
@@ -42,12 +41,12 @@ impl CommentService {
         let params = command.to_insert_params();
         let comment = self.comment_repo.insert_comment(params).await?;
 
-        let comment = self.comment_repo
+        let comment = self
+            .comment_repo
             .get_comment(comment.id, Some(user_id))
             .await?;
 
         Ok(comment)
-
     }
 
     pub async fn get_comments(
@@ -55,8 +54,6 @@ impl CommentService {
         article_id: ArticleId,
         user_id: Option<UserId>,
     ) -> Result<Vec<CommentView>, AppError> {
-        self.comment_repo
-          .get_comments(article_id, user_id)
-            .await
+        self.comment_repo.get_comments(article_id, user_id).await
     }
 }

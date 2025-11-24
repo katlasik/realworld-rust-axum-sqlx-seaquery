@@ -24,7 +24,7 @@ async fn get_profile(
 
     let user = state
         .user_service
-        .get_user_by_username( username.clone())
+        .get_user_by_username(username.clone())
         .await?
         .ok_or_else(|| AppError::NotFound)?;
 

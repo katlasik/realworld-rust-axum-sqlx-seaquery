@@ -46,7 +46,7 @@ async fn test_get_current_user_with_valid_token() {
             Request::builder()
                 .method("GET")
                 .uri("/api/user")
-                .header("Authorization", format!("Bearer {}", token))
+                .header("Authorization", format!("Token {}", token))
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -97,7 +97,7 @@ async fn test_get_current_user_with_invalid_token_fails() {
             Request::builder()
                 .method("GET")
                 .uri("/api/user")
-                .header("Authorization", "Bearer invalid.token.here")
+                .header("Authorization", "Token invalid.token.here")
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -110,7 +110,6 @@ async fn test_get_current_user_with_invalid_token_fails() {
 
 #[tokio::test]
 async fn test_update_user() {
-
     // Given
     let app = common::create_test_app().await;
 
@@ -160,7 +159,7 @@ async fn test_update_user() {
                 .method("PUT")
                 .uri("/api/user")
                 .header("content-type", "application/json")
-                .header("Authorization", format!("Bearer {token}"))
+                .header("Authorization", format!("Token {token}"))
                 .body(Body::from(serde_json::to_string(&update_payload).unwrap()))
                 .unwrap(),
         )

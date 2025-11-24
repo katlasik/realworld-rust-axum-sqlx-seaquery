@@ -32,5 +32,4 @@ impl Article {
             updated_at: row.get("updated_at"),
         }
     }
-
 }
