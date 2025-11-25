@@ -1,3 +1,4 @@
+use tracing::error;
 use tryphon::{Config, ErrorPrintMode, Secret};
 
 #[derive(Debug, Config, Clone)]
@@ -73,7 +74,7 @@ pub fn load_config() -> AppConfig {
     match AppConfig::load() {
         Ok(cfg) => cfg,
         Err(e) => {
-            eprintln!(
+            error!(
                 "Couldn't load configuration from env variables:\n{}",
                 e.pretty_print(ErrorPrintMode::Table)
             );

@@ -24,8 +24,6 @@
 
 ### 1. Set Up Database
 
-#### Option A: Using Docker (Recommended)
-
 ```bash
 cd docker
 docker-compose up -d
@@ -36,17 +34,6 @@ This starts PostgreSQL on `localhost:5432` with:
 - Database: `realworld`
 - Username: `realworld`
 - Password: `realworld`
-
-#### Option B: Using Local Postgres
-Create a database manually:
-
-```bash
-psql -U postgres
-CREATE DATABASE realworld;
-CREATE USER realworld WITH PASSWORD 'realworld';
-GRANT ALL PRIVILEGES ON DATABASE realworld TO realworld;
-\q
-```
 
 ### 2. Configure Environment
 
@@ -66,20 +53,10 @@ SERVER_PORT=8080
 
 ⚠️ **Important**: `PASSWORD_PEPPER` must remain constant in production. Changing it will invalidate all existing passwords.
 
-### 3. Run Migrations
+### 3. Build and Run
 
 ```bash
-sqlx migrate run
-```
-
-### 4. Build and Run
-
-```bash
-# Development mode
 cargo run
-
-# Release mode (optimized)
-cargo run --release
 ```
 
 The server will start at `http://localhost:8080`.

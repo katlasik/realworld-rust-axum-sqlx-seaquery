@@ -762,3 +762,430 @@ async fn test_get_feed_without_authentication_fails() {
 
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
+
+#[tokio::test]
+async fn test_filter_articles_by_tag() {
+    let app = common::create_test_app().await;
+    let token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+
+    let article_with_rust = json!({
+        "article": {
+            "title": "Rust Article",
+            "description": "About Rust",
+            "body": "Rust content",
+            "tagList": ["rust", "programming"]
+        }
+    });
+
+    let article_with_python = json!({
+        "article": {
+            "title": "Python Article",
+            "description": "About Python",
+            "body": "Python content",
+            "tagList": ["python", "programming"]
+        }
+    });
+
+    let article_with_javascript = json!({
+        "article": {
+            "title": "JavaScript Article",
+            "description": "About JavaScript",
+            "body": "JavaScript content",
+            "tagList": ["javascript"]
+        }
+    });
+
+    for payload in [article_with_rust, article_with_python, article_with_javascript] {
+        app.clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/articles")
+                    .header("content-type", "application/json")
+                    .header("authorization", format!("Token {}", token))
+                    .body(Body::from(serde_json::to_string(&payload).unwrap()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+    }
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/articles?tag=rust")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(body["articlesCount"], 1);
+    assert_eq!(body["articles"][0]["title"], "Rust Article");
+    assert!(body["articles"][0]["tagList"]
+        .as_array()
+        .unwrap()
+        .contains(&json!("rust")));
+}
+
+#[tokio::test]
+async fn test_filter_articles_by_author() {
+    let app = common::create_test_app().await;
+    let author1_token =
+        register_user(app.clone(), "author1", "author1@example.com", "password123").await;
+    let author2_token =
+        register_user(app.clone(), "author2", "author2@example.com", "password123").await;
+
+    let article_by_author1 = json!({
+        "article": {
+            "title": "Article by Author 1",
+            "description": "First author's article",
+            "body": "Content by author 1",
+            "tagList": []
+        }
+    });
+
+    let article_by_author2 = json!({
+        "article": {
+            "title": "Article by Author 2",
+            "description": "Second author's article",
+            "body": "Content by author 2",
+            "tagList": []
+        }
+    });
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author1_token))
+                .body(Body::from(serde_json::to_string(&article_by_author1).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author2_token))
+                .body(Body::from(serde_json::to_string(&article_by_author2).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/articles?author=author1")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(body["articlesCount"], 1);
+    assert_eq!(body["articles"][0]["title"], "Article by Author 1");
+    assert_eq!(body["articles"][0]["author"]["username"], "author1");
+}
+
+#[tokio::test]
+async fn test_filter_articles_by_favorited() {
+    let app = common::create_test_app().await;
+    let author_token =
+        register_user(app.clone(), "author", "author@example.com", "password123").await;
+    let user1_token = register_user(app.clone(), "user1", "user1@example.com", "password123").await;
+    let user2_token = register_user(app.clone(), "user2", "user2@example.com", "password123").await;
+
+    let article1 = json!({
+        "article": {
+            "title": "Article One",
+            "description": "First article",
+            "body": "Content 1",
+            "tagList": []
+        }
+    });
+
+    let article2 = json!({
+        "article": {
+            "title": "Article Two",
+            "description": "Second article",
+            "body": "Content 2",
+            "tagList": []
+        }
+    });
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author_token))
+                .body(Body::from(serde_json::to_string(&article1).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author_token))
+                .body(Body::from(serde_json::to_string(&article2).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles/article-one/favorite")
+                .header("authorization", format!("Token {}", user1_token))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles/article-two/favorite")
+                .header("authorization", format!("Token {}", user2_token))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/articles?favorited=user1")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(body["articlesCount"], 1);
+    assert_eq!(body["articles"][0]["title"], "Article One");
+    assert_eq!(body["articles"][0]["favoritesCount"], 1);
+}
+
+#[tokio::test]
+async fn test_paginate_articles_with_limit_and_offset() {
+    let app = common::create_test_app().await;
+    let token = register_user(app.clone(), "author", "author@example.com", "password123").await;
+
+    for i in 0..10 {
+        let article = json!({
+            "article": {
+                "title": format!("Article {}", i),
+                "description": format!("Description {}", i),
+                "body": format!("Body {}", i),
+                "tagList": []
+            }
+        });
+
+        app.clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/articles")
+                    .header("content-type", "application/json")
+                    .header("authorization", format!("Token {}", token))
+                    .body(Body::from(serde_json::to_string(&article).unwrap()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+    }
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/articles?limit=5&offset=0")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(body["articlesCount"], 10);
+    assert_eq!(body["articles"].as_array().unwrap().len(), 5);
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/articles?limit=3&offset=5")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(body["articlesCount"], 10);
+    assert_eq!(body["articles"].as_array().unwrap().len(), 3);
+}
+
+#[tokio::test]
+async fn test_combine_multiple_filters() {
+    let app = common::create_test_app().await;
+    let author1_token =
+        register_user(app.clone(), "author1", "author1@example.com", "password123").await;
+    let author2_token =
+        register_user(app.clone(), "author2", "author2@example.com", "password123").await;
+
+    let rust_article_by_author1 = json!({
+        "article": {
+            "title": "Rust by Author 1",
+            "description": "Rust content by author 1",
+            "body": "Content",
+            "tagList": ["rust", "programming"]
+        }
+    });
+
+    let python_article_by_author1 = json!({
+        "article": {
+            "title": "Python by Author 1",
+            "description": "Python content by author 1",
+            "body": "Content",
+            "tagList": ["python", "programming"]
+        }
+    });
+
+    let rust_article_by_author2 = json!({
+        "article": {
+            "title": "Rust by Author 2",
+            "description": "Rust content by author 2",
+            "body": "Content",
+            "tagList": ["rust", "webdev"]
+        }
+    });
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author1_token))
+                .body(Body::from(
+                    serde_json::to_string(&rust_article_by_author1).unwrap(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author1_token))
+                .body(Body::from(
+                    serde_json::to_string(&python_article_by_author1).unwrap(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/articles")
+                .header("content-type", "application/json")
+                .header("authorization", format!("Token {}", author2_token))
+                .body(Body::from(
+                    serde_json::to_string(&rust_article_by_author2).unwrap(),
+                ))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/articles?tag=rust&author=author1")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(body["articlesCount"], 1);
+    assert_eq!(body["articles"][0]["title"], "Rust by Author 1");
+    assert_eq!(body["articles"][0]["author"]["username"], "author1");
+    assert!(body["articles"][0]["tagList"]
+        .as_array()
+        .unwrap()
+        .contains(&json!("rust")));
+}

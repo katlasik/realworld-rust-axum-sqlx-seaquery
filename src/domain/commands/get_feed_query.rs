@@ -1,4 +1,4 @@
-use crate::http::dto::article::ArticleListQuery as ArticleListQueryDto;
+use crate::http::dto::article::{ArticleFeedListQuery};
 use crate::model::limit::Limit;
 use crate::model::offset::Offset;
 use crate::model::values::user_id::UserId;
@@ -11,7 +11,7 @@ pub struct GetFeedQuery {
 }
 
 impl GetFeedQuery {
-    pub fn from_request(dto: ArticleListQueryDto, user_id: UserId) -> Self {
+    pub fn from_request(dto: ArticleFeedListQuery, user_id: UserId) -> Self {
         GetFeedQuery {
             user_id,
             limit: dto.limit,

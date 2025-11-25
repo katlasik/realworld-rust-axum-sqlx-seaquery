@@ -4,10 +4,7 @@ use crate::domain::commands::get_feed_query::GetFeedQuery;
 use crate::domain::commands::list_articles_query::ListArticlesQuery;
 use crate::domain::commands::update_article_command::UpdateArticleCommand;
 use crate::http::AppState;
-use crate::http::dto::article::{
-    ArticleItem, ArticleListItem, ArticleListQuery as ArticleListQueryDto, ArticleResponse,
-    ArticlesResponse, CreateArticleRequest, UpdateArticleRequest,
-};
+use crate::http::dto::article::{ArticleFeedListQuery, ArticleItem, ArticleListItem, ArticleListQuery, ArticleResponse, ArticlesResponse, CreateArticleRequest, UpdateArticleRequest};
 use crate::http::extractors::auth_token::AuthToken;
 use crate::model::values::slug::Slug;
 use axum::extract::{Path, Query, State};
@@ -31,9 +28,9 @@ pub(crate) fn article_routes() -> Router<AppState> {
 async fn list_articles(
     State(state): State<AppState>,
     auth: Option<AuthToken>,
-    Query(params): Query<ArticleListQueryDto>,
+    Query(params): Query<ArticleListQuery>,
 ) -> Result<Json<ArticlesResponse>, AppError> {
-    info!("List articles with filters");
+    info!("List articles with filters: {:?}", params);
 
     let query = ListArticlesQuery::from_request(params);
     let user_id = auth.as_ref().map(|u| u.user_id);
@@ -58,9 +55,9 @@ async fn list_articles(
 async fn feed_articles(
     State(state): State<AppState>,
     auth: AuthToken,
-    Query(params): Query<ArticleListQueryDto>,
+    Query(params): Query<ArticleFeedListQuery>,
 ) -> Result<Json<ArticlesResponse>, AppError> {
-    info!("Get article feed");
+    info!("Get article feed with params: {:?}", params);
 
     let query = GetFeedQuery::from_request(params, auth.user_id);
 

@@ -117,11 +117,11 @@ pub struct CreateArticle {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateArticleRequest {
-    pub article: UpdateArticle,
+    pub article: UpdateArticleQuery,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UpdateArticle {
+pub struct UpdateArticleQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<ArticleTitle>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -130,7 +130,7 @@ pub struct UpdateArticle {
     pub body: Option<ArticleBody>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct ArticleListQuery {
     pub tag: Option<TagName>,
     pub author: Option<Username>,
@@ -138,3 +138,10 @@ pub struct ArticleListQuery {
     pub limit: Option<Limit>,
     pub offset: Option<Offset>,
 }
+
+#[derive(Deserialize, Debug)]
+pub struct ArticleFeedListQuery {
+  pub limit: Option<Limit>,
+  pub offset: Option<Offset>,
+}
+

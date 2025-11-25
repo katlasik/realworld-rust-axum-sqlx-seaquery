@@ -42,8 +42,8 @@ struct TestDatabase {
 }
 
 fn random_string() -> String {
-    let mut rand = rand::thread_rng();
-    (0..25).map(|_| rand.gen_range('a'..'z')).collect()
+    let mut rand = rand::rng();
+    (0..25).map(|_| rand.random_range('a'..'z')).collect()
 }
 
 impl TestDatabase {
