@@ -88,14 +88,21 @@ bootstrap() {
     fi
 
     echo ""
-    echo -e "${BLUE}[2/5]${NC} ${GREEN}Enabling S3 bucket versioning...${NC}"
+    echo -e "${BLUE}[2/6]${NC} ${GREEN}Tagging S3 bucket...${NC}"
+    aws s3api put-bucket-tagging \
+        --bucket "${BUCKET_NAME}" \
+        --tagging "TagSet=[{Key=Environment,Value=${ENVIRONMENT}},{Key=Name,Value=${BUCKET_NAME}},{Key=Project,Value=${PROJECT_NAME}},{Key=ManagedBy,Value=Terraform}]"
+    echo -e "${GREEN}      ✓ Tags applied${NC}"
+
+    echo ""
+    echo -e "${BLUE}[3/6]${NC} ${GREEN}Enabling S3 bucket versioning...${NC}"
     aws s3api put-bucket-versioning \
         --bucket "${BUCKET_NAME}" \
         --versioning-configuration Status=Enabled
     echo -e "${GREEN}      ✓ Versioning enabled${NC}"
 
     echo ""
-    echo -e "${BLUE}[3/5]${NC} ${GREEN}Enabling S3 bucket encryption...${NC}"
+    echo -e "${BLUE}[4/6]${NC} ${GREEN}Enabling S3 bucket encryption...${NC}"
     aws s3api put-bucket-encryption \
         --bucket "${BUCKET_NAME}" \
         --server-side-encryption-configuration '{
@@ -109,7 +116,7 @@ bootstrap() {
     echo -e "${GREEN}      ✓ Encryption enabled${NC}"
 
     echo ""
-    echo -e "${BLUE}[4/5]${NC} ${GREEN}Blocking public access to S3 bucket...${NC}"
+    echo -e "${BLUE}[5/6]${NC} ${GREEN}Blocking public access to S3 bucket...${NC}"
     aws s3api put-public-access-block \
         --bucket "${BUCKET_NAME}" \
         --public-access-block-configuration \
@@ -117,7 +124,7 @@ bootstrap() {
     echo -e "${GREEN}      ✓ Public access blocked${NC}"
 
     echo ""
-    echo -e "${BLUE}[5/5]${NC} ${GREEN}Creating DynamoDB table for state locking...${NC}"
+    echo -e "${BLUE}[6/6]${NC} ${GREEN}Creating DynamoDB table for state locking...${NC}"
 
     # Check if table already exists
     if aws dynamodb describe-table --table-name "${DYNAMODB_TABLE}" --region "${REGION}" 2>/dev/null >/dev/null; then
@@ -129,7 +136,7 @@ bootstrap() {
             --key-schema AttributeName=LockID,KeyType=HASH \
             --billing-mode PAY_PER_REQUEST \
             --region "${REGION}" \
-            --tags Key=Project,Value=${PROJECT_NAME} Key=Environment,Value=${ENVIRONMENT}
+            --tags Key=Project,Value=${PROJECT_NAME} Key=Environment,Value=${ENVIRONMENT} Key=Name,Value=${DYNAMODB_TABLE} Key=ManagedBy,Value=Terraform
 
         echo -e "${GREEN}      ✓ DynamoDB table created${NC}"
 
