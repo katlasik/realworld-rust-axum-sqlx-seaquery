@@ -1,6 +1,6 @@
 use crate::app_config::DatabaseConfig;
 use sqlx::migrate::MigrateError;
-use sqlx::postgres::PgPoolOptions;
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{Error, Pool, Postgres};
 use tracing::info;
 
@@ -15,7 +15,7 @@ impl Database {
 
 pub async fn connect_db(config: &DatabaseConfig) -> Result<Database, Error> {
     info!(
-        "Connecting to database {} with user {} successfully. Hash of password: {}.",
+        "Connecting to database {} with user {}. Hash of password: {}.",
         config.connection_url(),
         config.user,
         config.password
@@ -23,7 +23,14 @@ pub async fn connect_db(config: &DatabaseConfig) -> Result<Database, Error> {
 
     let db = PgPoolOptions::new()
         .max_connections(config.max_connections)
-        .connect(&config.connection_string())
+        .connect_with(
+            PgConnectOptions::new()
+                .host(&config.host)
+                .port(config.port)
+                .username(&config.user)
+                .password(&config.password)
+                .database(&config.database),
+        )
         .await?;
 
     info!(
