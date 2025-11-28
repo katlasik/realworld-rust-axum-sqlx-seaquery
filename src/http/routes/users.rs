@@ -27,7 +27,7 @@ pub(crate) async fn get_current_user(
     State(app_state): State<AppState>,
     auth_user: AuthToken,
 ) -> Result<Json<UserResponse>, AppError> {
-    info!("Get current user with id: {}", auth_user.user_id);
+    info!(user_id = %{auth_user.user_id}, "Get current user with id: {}", auth_user.user_id);
 
     let user = app_state
         .user_service
@@ -62,7 +62,7 @@ pub(crate) async fn update_user(
     auth_user: AuthToken,
     Json(payload): Json<UpdateUserRequest>,
 ) -> Result<Json<UserResponse>, AppError> {
-    info!("Update user with id: {}", auth_user.user_id);
+    info!(user_id = %{auth_user.user_id}, payload = ?payload, "Update user with id: {}", auth_user.user_id);
 
     let command = UpdateUserCommand::from_request(payload, auth_user.user_id);
 

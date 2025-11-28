@@ -42,7 +42,7 @@ pub(crate) async fn list_articles(
     auth: Option<AuthToken>,
     Query(params): Query<ArticleListQuery>,
 ) -> Result<Json<ArticlesResponse>, AppError> {
-    info!("List articles with filters: {:?}", params);
+    info!(params = ?params, "List articles with filters");
 
     let query = ListArticlesQuery::from_request(params);
     let user_id = auth.as_ref().map(|u| u.user_id);
@@ -79,7 +79,7 @@ pub(crate) async fn feed_articles(
     auth: AuthToken,
     Query(params): Query<ArticleFeedListQuery>,
 ) -> Result<Json<ArticlesResponse>, AppError> {
-    info!("Get article feed with params: {:?}", params);
+    info!(params = ?params, "Get article feed");
 
     let query = GetFeedQuery::from_request(params, auth.user_id);
 
@@ -117,7 +117,7 @@ pub(crate) async fn get_article(
     auth: Option<AuthToken>,
     Path(slug): Path<Slug>,
 ) -> Result<Json<ArticleResponse>, AppError> {
-    info!("Get article: {}", slug);
+    info!(slug = %slug, "Get article: {}", slug);
 
     let article = state
         .article_service
@@ -146,7 +146,7 @@ pub(crate) async fn create_article(
     auth: AuthToken,
     Json(payload): Json<CreateArticleRequest>,
 ) -> Result<(StatusCode, Json<ArticleResponse>), AppError> {
-    info!("Create article: {}", payload.article.title);
+    info!(payload = ?payload, "Create article");
 
     let command = CreateArticleCommand::from_request(payload, auth.user_id);
 
@@ -179,7 +179,7 @@ pub(crate) async fn update_article(
     Path(slug): Path<Slug>,
     Json(payload): Json<UpdateArticleRequest>,
 ) -> Result<Json<ArticleResponse>, AppError> {
-    info!("Update article: {}", slug);
+    info!(slug = %slug, payload = ?payload , "Update article: {}", slug);
 
     let command = UpdateArticleCommand::from_request(payload, slug);
 
@@ -212,7 +212,7 @@ pub(crate) async fn delete_article(
     auth: AuthToken,
     Path(slug): Path<Slug>,
 ) -> Result<StatusCode, AppError> {
-    info!("Delete article: {}", slug);
+    info!(slug = %slug, "Delete article: {}", slug);
 
     state
         .article_service
@@ -240,7 +240,7 @@ pub(crate) async fn favorite_article(
     auth: AuthToken,
     Path(slug): Path<Slug>,
 ) -> Result<Json<ArticleResponse>, AppError> {
-    info!("Favorite article: {}", slug);
+    info!(slug = %slug, "Favorite article: {}", slug);
 
     state
         .article_service
@@ -276,7 +276,7 @@ pub(crate) async fn unfavorite_article(
     auth: AuthToken,
     Path(slug): Path<Slug>,
 ) -> Result<Json<ArticleResponse>, AppError> {
-    info!("Unfavorite article: {}", slug);
+    info!(slug = %slug, "Unfavorite article: {}", slug);
 
     state
         .article_service

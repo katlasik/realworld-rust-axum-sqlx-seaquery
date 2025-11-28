@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Deref;
 use utoipa::ToSchema;
 
@@ -14,6 +15,12 @@ pub struct Password(String);
 impl Password {
     pub fn value(&self) -> &str {
         &self.0
+    }
+
+    pub fn hashed(&self) -> String {
+        let mut hasher = DefaultHasher::new();
+        self.0.hash(&mut hasher);
+        format!("{:x}", hasher.finish())
     }
 }
 
@@ -59,7 +66,7 @@ impl From<Password> for String {
 
 impl Display for Password {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "********")
+        write!(f, "{}", self.hashed())
     }
 }
 

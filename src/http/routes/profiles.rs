@@ -32,7 +32,9 @@ pub(crate) async fn get_profile(
     auth: Option<AuthToken>,
     Path(username): Path<Username>,
 ) -> Result<Json<ProfileResponse>, AppError> {
-    info!("Get profile for username: {}", username);
+    let maybe_user_id = auth.as_ref().map(|u| u.user_id);
+
+    info!(user_id = ?maybe_user_id, username = %username, "Get profile for username: {}", username);
 
     let user = state
         .user_service
@@ -40,11 +42,8 @@ pub(crate) async fn get_profile(
         .await?
         .ok_or_else(|| AppError::NotFound)?;
 
-    let following = if let Some(token) = auth {
-        state
-            .profile_service
-            .is_following(token.user_id, user.id)
-            .await?
+    let following = if let Some(user_id) = maybe_user_id {
+        state.profile_service.is_following(user_id, user.id).await?
     } else {
         false
     };
@@ -72,7 +71,7 @@ pub(crate) async fn follow_user(
     auth: AuthToken,
     Path(username): Path<Username>,
 ) -> Result<Json<ProfileResponse>, AppError> {
-    info!("Follow user: {}", username);
+    info!(user_id = %{auth.user_id}, username = %username, "Follow user: {}", username);
 
     let user = state
         .user_service
@@ -108,7 +107,7 @@ pub(crate) async fn unfollow_user(
     auth: AuthToken,
     Path(username): Path<Username>,
 ) -> Result<Json<ProfileResponse>, AppError> {
-    info!("Unfollow user: {}", username);
+    info!(user_id = %{auth.user_id}, username = %username, "Unfollow user: {}", username);
 
     let user = state
         .user_service

@@ -1,5 +1,4 @@
-use tracing::error;
-use tryphon::{Config, ErrorPrintMode, Secret};
+use tryphon::{Config, ConfigValueDecoder, ErrorPrintMode, Secret};
 
 #[derive(Debug, Config, Clone)]
 pub struct HttpConfig {
@@ -55,6 +54,21 @@ pub struct SecretsConfig {
     pub jwt: Secret<String>,
 }
 
+#[derive(Debug, Clone, ConfigValueDecoder)]
+pub enum LogFormatting {
+    Pretty,
+    Json,
+}
+
+#[derive(Debug, Config, Clone)]
+pub struct TracingConfig {
+    #[env("LOG_LEVEL")]
+    pub level: Option<String>,
+    #[env("LOG_FORMATTING")]
+    #[default(LogFormatting::Pretty)]
+    pub formatting: LogFormatting,
+}
+
 #[derive(Debug, Config, Clone)]
 pub struct AppConfig {
     #[config]
@@ -63,6 +77,8 @@ pub struct AppConfig {
     pub database: DatabaseConfig,
     #[config]
     pub secrets: SecretsConfig,
+    #[config]
+    pub tracing: TracingConfig,
 }
 
 pub fn load_config() -> AppConfig {
@@ -71,7 +87,8 @@ pub fn load_config() -> AppConfig {
     match AppConfig::load() {
         Ok(cfg) => cfg,
         Err(e) => {
-            error!(
+            //we can't log here because tracing might not be initialized yet
+            eprintln!(
                 "Couldn't load configuration from env variables:\n{}",
                 e.pretty_print(ErrorPrintMode::Table)
             );

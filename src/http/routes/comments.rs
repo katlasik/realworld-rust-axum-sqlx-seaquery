@@ -41,7 +41,7 @@ pub(crate) async fn create_comment(
     Path(slug): Path<Slug>,
     Json(payload): Json<CreateCommentRequest>,
 ) -> Result<(StatusCode, Json<CommentResponse>), AppError> {
-    info!("Add comment to article: {}", slug);
+    info!(user_id=%{auth.user_id}, payload=?payload, "Add comment to article: {}", slug);
 
     let article = state
         .article_service
@@ -78,7 +78,8 @@ pub(crate) async fn get_comments(
     auth: Option<AuthToken>,
     Path(slug): Path<Slug>,
 ) -> Result<Json<CommentsResponse>, AppError> {
-    info!("Get comments for article: {}", slug);
+    let maybe_user_id = auth.as_ref().map(|a| a.user_id);
+    info!(slug = %slug, user_id = ?maybe_user_id, "Get comments for article: {}", slug);
 
     let article = state
         .article_service
@@ -88,7 +89,7 @@ pub(crate) async fn get_comments(
 
     let comment_views = state
         .comment_service
-        .get_comments(article.id, auth.map(|a| a.user_id))
+        .get_comments(article.id, maybe_user_id)
         .await?;
 
     let comments = comment_views
@@ -119,7 +120,7 @@ pub(crate) async fn delete_comment(
     auth: AuthToken,
     Path((slug, comment_id)): Path<(Slug, CommentId)>,
 ) -> Result<StatusCode, AppError> {
-    info!("Delete comment {} from article: {}", comment_id, slug);
+    info!(user_id=%{auth.user_id}, slug = %slug, comment_id = %comment_id, "Delete comment {} from article: {}", comment_id, slug);
 
     state
         .comment_service

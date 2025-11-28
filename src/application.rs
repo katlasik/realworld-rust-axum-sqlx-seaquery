@@ -19,9 +19,9 @@ use http::AppState;
 use tracing::info;
 
 pub async fn start_app() {
-    init_tracing();
-    info!("Starting realworld server...");
     let config = load_config();
+    init_tracing(&config.tracing);
+    info!("Starting realworld server...");
 
     let app_state = create_app_state(&config).await;
 

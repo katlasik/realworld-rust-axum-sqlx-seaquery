@@ -55,8 +55,12 @@ resource "aws_ecs_task_definition" "app" {
           value = tostring(var.app_port)
         },
         {
-          name  = "RUST_LOG"
+          name  = "LOG_LEVEL"
           value = "info"
+        },
+        {
+          name  = "LOG_FORMATTING"
+          value = "json"
         }
       ]
 

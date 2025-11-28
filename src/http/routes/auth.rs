@@ -59,7 +59,10 @@ pub(crate) async fn register(
     State(app_state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<(StatusCode, Json<UserResponse>), AppError> {
-    info!("Registration attempt for email: {}", payload.user.email);
+    info!(
+        "Registration attempt for email: {}, username: {}, hash of password: {}",
+        payload.user.email, payload.user.username, payload.user.password
+    );
 
     let command = RegisterCommand::from_request(payload);
 

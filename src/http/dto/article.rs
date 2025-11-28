@@ -131,7 +131,7 @@ pub struct UpdateArticleQuery {
     pub body: Option<ArticleBody>,
 }
 
-#[derive(Deserialize, Debug, ToSchema, utoipa::IntoParams)]
+#[derive(Serialize, Deserialize, Debug, ToSchema, utoipa::IntoParams)]
 pub struct ArticleListQuery {
     pub tag: Option<TagName>,
     pub author: Option<Username>,
@@ -140,7 +140,7 @@ pub struct ArticleListQuery {
     pub offset: Option<Offset>,
 }
 
-#[derive(Deserialize, Debug, ToSchema, utoipa::IntoParams)]
+#[derive(Serialize, Deserialize, Debug, ToSchema, utoipa::IntoParams)]
 pub struct ArticleFeedListQuery {
     pub limit: Option<Limit>,
     pub offset: Option<Offset>,
