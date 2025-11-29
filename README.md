@@ -11,6 +11,7 @@
 - **[Tokio](https://tokio.rs/)** - Async runtime for high-performance networking
 - **[Argon2](https://github.com/RustCrypto/password-hashes)** - Secure password hashing
 - **[JWT](https://github.com/Keats/jsonwebtoken)** - JSON Web Token implementation
+- **[Tryphon](https://github.com/katlasik/Tryphon)** - Loading and validating configuration from environment variables
 
 ## Prerequisites
 
