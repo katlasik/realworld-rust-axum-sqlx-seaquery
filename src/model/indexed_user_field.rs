@@ -1,3 +1,4 @@
+use sea_query::IntoColumnRef;
 use crate::persistence::schema::Users;
 
 pub enum IndexedUserField {
@@ -7,7 +8,7 @@ pub enum IndexedUserField {
 }
 
 impl IndexedUserField {
-    pub(crate) fn to_field_name(&self) -> (Users, Users) {
+    pub(crate) fn to_field_name(&self) -> impl IntoColumnRef {
         match self {
             IndexedUserField::Email => (Users::Table, Users::Email),
             IndexedUserField::Username => (Users::Table, Users::Username),
