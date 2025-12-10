@@ -1,5 +1,5 @@
-use sea_query::IntoColumnRef;
 use crate::persistence::schema::Articles;
+use sea_query::IntoColumnRef;
 
 pub enum IndexedArticleField {
     Slug,

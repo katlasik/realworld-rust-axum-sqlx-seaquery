@@ -1,5 +1,5 @@
-use sea_query::IntoColumnRef;
 use crate::persistence::schema::Users;
+use sea_query::IntoColumnRef;
 
 pub enum IndexedUserField {
     Email,
